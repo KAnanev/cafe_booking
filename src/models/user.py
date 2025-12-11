@@ -4,4 +4,4 @@ from src.core.db import Base
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
-    pass
+    """Модель пользователя для хранения данных в базе данных."""

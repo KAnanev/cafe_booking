@@ -5,9 +5,13 @@ from src.core.config import settings
 from src.core.init_db import create_first_superuser
 
 
-async def lifespan(app):
+async def lifespan(app: FastAPI) -> None:
+    """Асинхронная функция жизненного цикла приложения FastAPI.
+
+    Инициализирует данные при запуске приложения.
+    """
     await create_first_superuser()
-    yield
+    yield  # Указывает, что событие произошло
 
 
 app = FastAPI(

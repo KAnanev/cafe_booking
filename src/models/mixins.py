@@ -5,12 +5,13 @@ from sqlalchemy import Boolean, Column, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 
 
-def utcnow():
+def utcnow() -> datetime:
+    """Возвращает текущее время в UTC."""
     return datetime.now(timezone.utc)
 
 
 class UUIDMixin:
-    """Миксин для ID"""
+    """Миксин для ID."""
 
     id = Column(
         UUID(as_uuid=True),
@@ -21,7 +22,7 @@ class UUIDMixin:
 
 
 class TimestampMixin:
-    """Миксин для временных меток"""
+    """Миксин для временных меток."""
 
     created_at = Column(
         DateTime(timezone=True),
@@ -39,7 +40,7 @@ class TimestampMixin:
 
 
 class ActiveMixin:
-    """Миксин для active"""
+    """Миксин для active."""
 
     active = Column(
         Boolean,

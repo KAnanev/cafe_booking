@@ -11,9 +11,11 @@ from src.core.config import settings
 
 
 class PreBase:
+    """Базовый класс для моделей SQLAlchemy."""
+
     @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+    def __tablename__(self) -> str:
+        return self.__name__.lower()
 
 
 Base = declarative_base(cls=PreBase)
@@ -23,5 +25,6 @@ AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """Возвращает асинхронную сессию SQLAlchemy."""
     async with AsyncSessionLocal() as async_session:
         yield async_session
