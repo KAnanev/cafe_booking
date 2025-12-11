@@ -2,10 +2,10 @@ from typing import Optional, Union
 from uuid import UUID
 
 from fastapi import Depends, Request
+from fastapi.logger import logger
 from fastapi_users import (
     BaseUserManager,
     FastAPIUsers,
-    IntegerIDMixin,
     InvalidPasswordException,
 )
 from fastapi_users.authentication import (
@@ -22,7 +22,6 @@ from src.core.db import get_async_session
 from src.models.mixins import UUIDMixin
 from src.models.user import User
 from src.schemas.user import UserCreate
-from fastapi.logger import logger
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
@@ -34,7 +33,8 @@ bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(
-        secret=settings.secret, lifetime_seconds=JWT_LIFETIME_SECONDS
+        secret=settings.secret,
+        lifetime_seconds=JWT_LIFETIME_SECONDS,
     )
 
 
@@ -47,20 +47,24 @@ auth_backend = AuthenticationBackend(
 
 class UserManager(UUIDMixin, BaseUserManager[User, UUID]):
     async def validate_password(
-        self, password: str, user: Union[UserCreate, User]
+        self,
+        password: str,
+        user: Union[UserCreate, User],
     ) -> None:
         if len(password) < MIN_PASSWORD_LENGTH:
             raise InvalidPasswordException(
                 reason=f'Пароль должен быть не менее '
-                f'{MIN_PASSWORD_LENGTH} символов длиной'
+                f'{MIN_PASSWORD_LENGTH} символов длиной',
             )
         if user.email in password:
             raise InvalidPasswordException(
-                reason='Пароль не должен содержать электронную почту'
+                reason='Пароль не должен содержать электронную почту',
             )
 
     async def on_after_register(
-        self, user: User, request: Optional[Request] = None
+        self,
+        user: User,
+        request: Optional[Request] = None,
     ):
         logger.info(f'Пользователь {user.email} зарегистрирован.')
 

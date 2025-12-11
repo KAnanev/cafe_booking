@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type, Optional, List
+from typing import Generic, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db import Base
 from src.models import User
-
 
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
@@ -18,10 +17,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     async def get(
-        self, obj_id: int, session: AsyncSession
+        self,
+        obj_id: int,
+        session: AsyncSession,
     ) -> Optional[ModelType]:
         db_obj = await session.execute(
-            select(self.model).where(self.model.id == obj_id)
+            select(self.model).where(self.model.id == obj_id),
         )
         return db_obj.scalars().first()
 
@@ -40,7 +41,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         if user is not None:
             obj_in_data['user_id'] = user.id
-
 
         db_obj = self.model(**obj_in_data)
         session.add(db_obj)
@@ -67,7 +67,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def remove(
-        self, db_obj: ModelType, session: AsyncSession
+        self,
+        db_obj: ModelType,
+        session: AsyncSession,
     ) -> ModelType:
         await session.delete(db_obj)
         await session.commit()

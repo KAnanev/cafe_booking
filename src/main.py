@@ -9,6 +9,7 @@ async def lifespan(app):
     await create_first_superuser()
     yield
 
+
 app = FastAPI(
     title=settings.app_title,
     description=settings.app_desc,
@@ -16,4 +17,3 @@ app = FastAPI(
 )
 
 app.include_router(main_router)
-

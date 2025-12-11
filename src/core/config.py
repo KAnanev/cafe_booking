@@ -1,8 +1,7 @@
 from typing import Optional
 
-from pydantic import EmailStr, ConfigDict
+from pydantic import ConfigDict, EmailStr
 from pydantic_settings import BaseSettings
-
 
 
 class Settings(BaseSettings):
@@ -29,13 +28,13 @@ class Settings(BaseSettings):
 
     def _generate_db_url(self, protocol: str) -> str:
         return (
-            f"{protocol}://{self.postgres_user}:{self.postgres_password}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+            f'{protocol}://{self.postgres_user}:{self.postgres_password}'
+            f'@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}'
         )
 
     model_config = ConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
+        env_file='.env',
+        env_file_encoding='utf-8',
     )
 
 

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, func, Boolean
+from sqlalchemy import Boolean, Column, DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
 
 
@@ -37,8 +37,10 @@ class TimestampMixin:
         onupdate=func.now(),
     )
 
+
 class ActiveMixin:
     """Миксин для active"""
+
     active = Column(
         Boolean,
         nullable=False,

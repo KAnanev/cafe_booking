@@ -1,11 +1,11 @@
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    AsyncSession,
     AsyncEngine,
+    AsyncSession,
+    create_async_engine,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, declared_attr
+from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 
 from src.core.config import settings
 
