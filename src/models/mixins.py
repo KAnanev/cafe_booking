@@ -1,24 +1,11 @@
-import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, Column, DateTime, func, text
 
 
 def utcnow() -> datetime:
     """Возвращает текущее время в UTC."""
     return datetime.now(timezone.utc)
-
-
-class UUIDMixin:
-    """Миксин для ID."""
-
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        nullable=False,
-    )
 
 
 class TimestampMixin:
@@ -46,5 +33,5 @@ class ActiveMixin:
         Boolean,
         nullable=False,
         default=True,
-        server_default='true',
+        server_default=text('true'),
     )

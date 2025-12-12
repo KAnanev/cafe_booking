@@ -1,7 +1,7 @@
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Type, TypeVar, Sequence
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import Base
@@ -19,7 +19,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Инициализатор класса."""
         self.model = model
 
-    async def get(
+    async def get_by_id(
         self,
         obj_id: int,
         session: AsyncSession,
@@ -30,7 +30,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession) -> List[ModelType]:
+    async def get_multi(self, session: AsyncSession) -> Sequence[ModelType]:
         """Получает список всех объектов."""
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
@@ -43,14 +43,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         commit: bool = True,
     ) -> ModelType:
         """Создаёт новый объект в базе данных."""
-        obj_in_data = obj_in.dict()
+        model_columns = set(inspect(self.model).columns.keys())
 
-        if user is not None:
-            obj_in_data['user_id'] = user.id
+        obj_in_data = obj_in.model_dump()
+        filtered_data = {
+            k: v for k, v in obj_in_data.items() if k in model_columns
+        }
 
-        db_obj = self.model(**obj_in_data)
+        if user is not None and 'user_id' in model_columns:
+            filtered_data['user_id'] = user.id
+
+        db_obj = self.model(**filtered_data)
         session.add(db_obj)
-        await session.flush()
         if commit:
             await session.commit()
             await session.refresh(db_obj)
@@ -78,7 +82,15 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         session: AsyncSession,
     ) -> ModelType:
-        """Удаляет объект из базы данных."""
-        await session.delete(db_obj)
-        await session.commit()
-        return db_obj
+        """Отключает объект."""
+
+        if hasattr(db_obj, 'is_active'):
+            setattr(db_obj, 'is_active', False)
+            session.add(db_obj)
+            await session.commit()
+            await session.refresh(db_obj)
+            return db_obj
+
+        raise AttributeError(
+            f"Модель {db_obj.__class__.__name__} не поддерживает отключение."
+        )
