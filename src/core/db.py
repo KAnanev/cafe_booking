@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 
-from src.core.config import settings
+from core.config import settings
 
 
 class PreBase:

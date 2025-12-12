@@ -42,7 +42,7 @@ class TimestampMixin:
 class ActiveMixin:
     """Миксин для active."""
 
-    active = Column(
+    is_active = Column(
         Boolean,
         nullable=False,
         default=True,

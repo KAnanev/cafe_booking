@@ -1,6 +1,7 @@
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 
-from src.core.db import Base
+from core.db import Base
+from models.mixins import TimestampMixin
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):

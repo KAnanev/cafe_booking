@@ -17,12 +17,12 @@ from fastapi_users.models import UserProtocol
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
-from src.core.constant import JWT_LIFETIME_SECONDS, MIN_PASSWORD_LENGTH
-from src.core.db import get_async_session
-from src.models.mixins import UUIDMixin
-from src.models.user import User
-from src.schemas.user import UserCreate
+from core.config import settings
+from core.constant import JWT_LIFETIME_SECONDS, MIN_PASSWORD_LENGTH
+from core.db import get_async_session
+from models.mixins import UUIDMixin
+from models.user import User
+from schemas.user import UserCreate
 
 
 async def get_user_db(

@@ -2,8 +2,18 @@ from uuid import UUID
 
 from fastapi_users import schemas
 
+from schemas.base import TimestampSchema
 
-class UserRead(schemas.BaseUser[UUID]):
+
+class UserMixin(TimestampSchema):
+    username: str
+    email: str
+    phone: str
+    tg_id: str
+    role: int
+
+
+class UserRead(UserMixin, schemas.BaseUser[UUID]):
     """Модель для чтения данных пользователя."""
 
 
