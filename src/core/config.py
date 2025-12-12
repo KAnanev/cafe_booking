@@ -10,13 +10,13 @@ class Settings(BaseSettings):
     app_title: str = 'Бронирование мест в кафе'
     app_desc: str = 'Сервис бронирования мест в кафе'
 
-    postgres_host: str = 'localhost'
+    postgres_host: str
     postgres_port: int
     postgres_user: str
     postgres_password: str
     postgres_db: str
 
-    secret: str = 'SECRET'
+    secret: str
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
 
