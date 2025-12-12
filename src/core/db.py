@@ -1,8 +1,8 @@
 import uuid
 from typing import AsyncGenerator
-from sqlalchemy.dialects.postgresql import UUID
 
 from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
