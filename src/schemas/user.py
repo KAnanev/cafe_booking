@@ -86,6 +86,12 @@ class UserCreate(UserBase):
         return self
 
 
+class UserCreateInternal(UserBase):
+    """Схема входящих данных при передаче в CRUD."""
+
+    hashed_password: str
+
+
 class UserUpdate(ActiveSchema, UserBase):
     """Схема для частичного обновления данных пользователя.
 
