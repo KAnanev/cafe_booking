@@ -1,6 +1,11 @@
-# Это основной запускаемый файл.
-# Заменить содержимое своим кодом.
+from fastapi import FastAPI
 
-import sys
+from api.routers import main_router
+from core.config import settings
 
-print(sys.path)
+app = FastAPI(
+    title=settings.app_title,
+    description=settings.app_desc,
+)
+
+app.include_router(main_router)
