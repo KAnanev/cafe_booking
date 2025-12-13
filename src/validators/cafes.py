@@ -14,7 +14,6 @@ async def get_cafe_or_404(
     session: AsyncSession = Depends(get_async_session),
 ) -> Cafe:
     """Получает кафе по ID или отдаёт 404."""
-
     stmt = select(Cafe).where(
         Cafe.id == cafe_id,
         Cafe.is_active.is_(True),

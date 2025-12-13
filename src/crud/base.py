@@ -17,7 +17,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def __init__(self, model: Type[ModelType]) -> None:
         """Инициализатор класса."""
-
         self.model = model
 
     async def get_by_id(
@@ -26,7 +25,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
-
         db_obj = await session.execute(
             select(self.model).where(self.model.id == obj_id),
         )
@@ -34,7 +32,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_multi(self, session: AsyncSession) -> Sequence[ModelType]:
         """Получает список всех объектов."""
-
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
 
@@ -46,7 +43,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         commit: bool = True,
     ) -> ModelType:
         """Создаёт новый объект в базе данных."""
-
         model_columns = set(inspect(self.model).columns.keys())
 
         obj_in_data = obj_in.model_dump()
@@ -71,7 +67,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Обновляет существующий объект в базе данных."""
-
         obj_data = obj_in.dict(exclude_unset=True)
 
         for field in obj_data:
@@ -88,7 +83,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Отключает объект."""
-
         if hasattr(db_obj, 'is_active'):
             setattr(db_obj, 'is_active', False)
             session.add(db_obj)

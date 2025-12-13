@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
 from api.endpoints.cafes import router as cafes_router
-from api.endpoints.tables import router as tables_router
 from api.endpoints.slots import router as slots_router
+from api.endpoints.tables import router as tables_router
 
 main_router = APIRouter()
 

@@ -10,7 +10,10 @@ from core.constant import (
     UUID_LENGTH,
 )
 from schemas.base import (
-    ActiveSchema, BaseSchema, TimestampSchema, UUIDIDSchema
+    ActiveSchema,
+    BaseSchema,
+    TimestampSchema,
+    UUIDIDSchema,
 )
 
 

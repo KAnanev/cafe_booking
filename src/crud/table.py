@@ -18,6 +18,7 @@ class TableCRUD(CRUDBase[Table, TableCreate, TableUpdate]):
         cafe_id: UUID,
         show_all: bool = False,
     ) -> Sequence[Table]:
+        """Получить все столы, принадлежащие указанному кафе."""
         query = select(self.model).where(self.model.cafe_id == cafe_id)
         if not show_all:
             query = query.where(self.model.is_active.is_(True))
@@ -31,6 +32,7 @@ class TableCRUD(CRUDBase[Table, TableCreate, TableUpdate]):
         table_id: UUID,
         show_all: bool = False,
     ) -> Table | None:
+        """Найти конкретный стол по его идентификатору в указанном кафе."""
         query = select(self.model).where(
             self.model.id == table_id,
             self.model.cafe_id == cafe_id,

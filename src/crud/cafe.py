@@ -18,6 +18,7 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
         session: AsyncSession,
         show_all: bool = False,
     ) -> Sequence[Cafe]:
+        """Получить все записи кафе из базы данных."""
         query = select(self.model)
         if not show_all:
             query = query.where(self.model.is_active.is_(True))
@@ -30,7 +31,6 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
         user_id: UUID,
     ) -> Sequence[Cafe]:
         """Кафе, которыми управляет пользователь (через M2M cafe_managers)."""
-
         query = (
             select(self.model)
             .options(selectinload(self.model.managers))

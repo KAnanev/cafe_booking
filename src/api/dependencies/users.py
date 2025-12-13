@@ -60,7 +60,6 @@ async def get_current_user(
 
 def required_role(role: Roles) -> Callable[[User], Awaitable[User]]:
     """Возвращает зависимость, проверяющую минимальную роль пользователя."""
-
     async def check_role(user: User = Depends(get_current_user)) -> User:
         if user.role < role:
             raise HTTPException(

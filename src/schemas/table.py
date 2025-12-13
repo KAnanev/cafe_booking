@@ -4,11 +4,14 @@ from pydantic import ConfigDict, Field
 
 from core.constant import (
     TABLE_DESCRIPTION_MAX_LENGTH,
-    TABLE_MIN_SEATS_NUMBER,
     TABLE_MAX_SEATS_NUMBER,
+    TABLE_MIN_SEATS_NUMBER,
 )
 from schemas.base import (
-    ActiveSchema, BaseSchema, TimestampSchema, UUIDIDSchema
+    ActiveSchema,
+    BaseSchema,
+    TimestampSchema,
+    UUIDIDSchema,
 )
 from schemas.cafe import CafeShort
 

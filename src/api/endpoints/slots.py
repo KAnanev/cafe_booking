@@ -29,6 +29,7 @@ async def get_slots(
     session: AsyncSession = Depends(get_async_session),
     cafe: Cafe = Depends(get_cafe_or_404),
 ) -> Sequence[SlotRead]:
+    """Получить список временных слотов для указанного кафе."""
     query = select(slot_crud.model).where(
         slot_crud.model.cafe_id == cafe.id,
     )
@@ -51,14 +52,14 @@ async def create_slot(
     cafe: Cafe = Depends(get_cafe_or_404),
     current_user: User = Depends(can_manage_cafe),
 ) -> SlotRead:
+    """Создать новый временной слот для указанного кафе."""
     if slot_in.cafe_id != cafe.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='cafe_id в теле не совпадает с cafe_id в пути',
         )
     try:
-        slot = await slot_crud.create(obj_in=slot_in, session=session)
-        return slot
+        return await slot_crud.create(obj_in=slot_in, session=session)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,6 +79,7 @@ async def update_slot(
     cafe: Cafe = Depends(get_cafe_or_404),
     current_user: User = Depends(can_manage_cafe),
 ) -> SlotRead:
+    """Обновить данные слота."""
     slot = await slot_crud.get_by_id(slot_id, session=session)
     if slot is None or slot.cafe_id != cafe.id:
         raise HTTPException(
@@ -90,16 +92,11 @@ async def update_slot(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='cafe_id в теле не совпадает с cafe_id в пути',
             )
-        # Запрещаем "перенос" слота в другое кафе.
         slot_in.cafe_id = None
 
     try:
-        updated = await slot_crud.update(
-            db_obj=slot,
-            obj_in=slot_in,
-            session=session,
-        )
-        return updated
+        return await slot_crud.update(
+            db_obj=slot, obj_in=slot_in, session=session)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

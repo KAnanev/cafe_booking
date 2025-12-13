@@ -14,9 +14,9 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from .user import User
-    from .table import Table
     from .slots import Slot
+    from .table import Table
+    from .user import User
 
 
 class Cafe(TimestampMixin, ActiveMixin, Base):

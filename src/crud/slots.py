@@ -20,6 +20,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         end: time,
         exclude_id: UUID | None = None,
     ) -> bool:
+        """Проверить существование активного слота с указанными параметрами."""
         conditions = [
             self.model.cafe_id == cafe_id,
             self.model.start_time == start,
@@ -39,6 +40,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         session: AsyncSession,
         related: dict[str, list] | None = None,
     ) -> Slot:
+        """Создать новый временной слот с проверкой на уникальность."""
         if await self._exists_slot(
             session=session,
             cafe_id=obj_in.cafe_id,
@@ -57,12 +59,15 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         session: AsyncSession,
         related: dict[str, list] | None = None,
     ) -> Slot:
+        """Обновить слот с проверкой корректности данных."""
         start = obj_in.start_time or db_obj.start_time
         end = obj_in.end_time or db_obj.end_time
         cafe_id = obj_in.cafe_id or db_obj.cafe_id
 
         if start >= end:
-            raise ValueError('Начальное время не может быть больше или равно конечному')
+            raise ValueError(
+                'Начальное время не может быть больше или равно конечному',
+            )
 
         if await self._exists_slot(
             session=session,
@@ -74,7 +79,9 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
             raise ValueError(
                 'Слот с таким временем уже существует для этого кафе',
             )
-        return await super().update(db_obj=db_obj, obj_in=obj_in, session=session)
+        return await super().update(
+            db_obj=db_obj, obj_in=obj_in, session=session,
+        )
 
 
 slot_crud = SlotCRUD(Slot)

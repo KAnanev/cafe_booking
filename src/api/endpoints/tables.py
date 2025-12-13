@@ -28,6 +28,7 @@ async def get_tables(
     session: AsyncSession = Depends(get_async_session),
     cafe: Cafe = Depends(get_cafe_or_404),
 ) -> Sequence[TableRead]:
+    """Получить столы кафе."""
     return await table_crud.get_by_cafe(
         session=session,
         cafe_id=cafe.id,
@@ -47,14 +48,14 @@ async def create_table(
     cafe: Cafe = Depends(get_cafe_or_404),
     current_user: User = Depends(can_manage_cafe),
 ) -> TableRead:
+    """Создать новый стол в указанном кафе."""
     if table_in.cafe_id != cafe.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='cafe_id в теле не совпадает с cafe_id в пути',
         )
 
-    table = await table_crud.create(obj_in=table_in, session=session)
-    return table
+    return await table_crud.create(obj_in=table_in, session=session)
 
 
 @router.get(
@@ -67,6 +68,7 @@ async def get_table(
     session: AsyncSession = Depends(get_async_session),
     cafe: Cafe = Depends(get_cafe_or_404),
 ) -> TableRead:
+    """Получить информацию о конкретном столе в указанном кафе."""
     table = await table_crud.get_by_cafe_and_id(
         session=session,
         cafe_id=cafe.id,
@@ -93,6 +95,7 @@ async def update_table(
     cafe: Cafe = Depends(get_cafe_or_404),
     current_user: User = Depends(can_manage_cafe),
 ) -> TableRead:
+    """Обновить информацию о столе в указанном кафе."""
     table = await table_crud.get_by_cafe_and_id(
         session=session,
         cafe_id=cafe.id,
@@ -110,12 +113,6 @@ async def update_table(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='cafe_id в теле не совпадает с cafe_id в пути',
             )
-        # Запрещаем "перенос" стола в другое кафе.
         table_in.cafe_id = None
 
-    updated = await table_crud.update(
-        db_obj=table,
-        obj_in=table_in,
-        session=session,
-    )
-    return updated
+    return await table_crud.update(db_obj=table, session=session)

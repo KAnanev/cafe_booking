@@ -1,14 +1,14 @@
-from typing import TYPE_CHECKING, Optional
 import uuid
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import UUID as UUIDType
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constant import (
     TABLE_DESCRIPTION_MAX_LENGTH,
-    TABLE_MIN_SEATS_NUMBER,
     TABLE_MAX_SEATS_NUMBER,
+    TABLE_MIN_SEATS_NUMBER,
 )
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
@@ -33,7 +33,7 @@ class Table(TimestampMixin, ActiveMixin, Base):
     )
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType(as_uuid=True),
+        UUID(as_uuid=True),
         ForeignKey('cafes.id', ondelete='CASCADE'),
         nullable=False,
         index=True,

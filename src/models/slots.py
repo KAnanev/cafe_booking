@@ -1,9 +1,9 @@
+import uuid
 from datetime import time
 from typing import TYPE_CHECKING
-import uuid
 
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID as UUIDType
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constant import DESCRIPTION_MAX_LENGTH
@@ -20,7 +20,7 @@ class Slot(TimestampMixin, ActiveMixin, Base):
     __tablename__ = 'slots'
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType(as_uuid=True),
+        UUID(as_uuid=True),
         ForeignKey('cafes.id', ondelete='CASCADE'),
         nullable=False,
     )

@@ -6,7 +6,10 @@ from pydantic import ConfigDict, Field, model_validator
 
 from core.constant import DESCRIPTION_MAX_LENGTH, DESCRIPTION_MIN_LENGTH
 from schemas.base import (
-    ActiveSchema, BaseSchema, TimestampSchema, UUIDIDSchema
+    ActiveSchema,
+    BaseSchema,
+    TimestampSchema,
+    UUIDIDSchema,
 )
 from schemas.cafe import CafeShort
 
@@ -37,7 +40,8 @@ class SlotBase(BaseSchema):
     )
 
     @model_validator(mode='before')
-    def check_times(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def check_times(self, values: dict[str, Any]) -> dict[str, Any]:
+        """Валидировать корректность временного интервала для слота."""
         start = values.get('start_time')
         end = values.get('end_time')
         if start and end and start >= end:
@@ -67,7 +71,8 @@ class SlotUpdate(BaseSchema):
     )
 
     @model_validator(mode='before')
-    def check_times(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def check_times(self, values: dict[str, Any]) -> dict[str, Any]:
+        """Проверяет время начала слота строго меньше времени окончания."""
         start = values.get('start_time')
         end = values.get('end_time')
         if start and end and start >= end:

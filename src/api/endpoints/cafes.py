@@ -25,6 +25,7 @@ async def get_cafes(
     ),
     session: AsyncSession = Depends(get_async_session),
 ) -> Sequence[CafeRead]:
+    """Получить список всех кафе."""
     return await cafe_crud.get_all(session=session, show_all=show_all)
 
 
@@ -39,8 +40,10 @@ async def create_cafe(
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(is_manager_or_admin),
 ) -> CafeRead:
-    # Создаём кафе и привязываем текущего менеджера как управляющего.
-    cafe = await cafe_crud.create(obj_in=cafe_in, session=session, commit=False)
+    """Создать кафе."""
+    cafe = await cafe_crud.create(
+        obj_in=cafe_in, session=session, commit=False,
+    )
     await session.flush()
     if current_user.role == Roles.MANAGER:
         cafe.managers.append(current_user)
@@ -58,6 +61,7 @@ async def get_cafe(
     cafe_id: UUID,
     session: AsyncSession = Depends(get_async_session),
 ) -> CafeRead:
+    """Получить информацию о кафе по его идентификатору."""
     cafe = await cafe_crud.get_by_id(obj_id=cafe_id, session=session)
     if cafe is None:
         raise HTTPException(
@@ -78,11 +82,11 @@ async def update_cafe(
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(can_manage_cafe),
 ) -> CafeRead:
+    """Обновить информацию о кафе."""
     cafe = await cafe_crud.get_by_id(obj_id=cafe_id, session=session)
     if cafe is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Кафе не найдено',
         )
-    updated = await cafe_crud.update(db_obj=cafe, obj_in=cafe_in, session=session)
-    return updated
+    return await cafe_crud.update(db_obj=cafe, obj_in=cafe_in, session=session)

@@ -36,6 +36,5 @@ AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """Возвращает асинхронную сессию SQLAlchemy."""
-
     async with AsyncSessionLocal() as async_session:
         yield async_session

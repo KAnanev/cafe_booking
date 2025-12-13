@@ -14,7 +14,6 @@ async def is_manager_or_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Разрешает доступ только менеджерам и админам."""
-
     if current_user.role in (Roles.MANAGER, Roles.ADMIN):
         return current_user
     raise HTTPException(
@@ -29,7 +28,6 @@ async def can_manage_cafe(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Проверка права управления конкретным кафе."""
-
     if current_user.role == Roles.ADMIN:
         return current_user
 
