@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Sequence, Type, TypeVar
+from typing import Generic, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -26,11 +26,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
         db_obj = await session.execute(
-            select(self.model).where(self.model.id == obj_id),
+            select(self.model).where(obj_id == self.model.id),
         )
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession) -> Sequence[ModelType]:
+    async def get_multi(self, session: AsyncSession) -> list[ModelType]:
         """Получает список всех объектов."""
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
