@@ -78,6 +78,9 @@ async def db_session(
     async with session_factory() as session:
         yield session
 
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
 
 @pytest.fixture(scope='session')
 def event_loop() -> Generator[AbstractEventLoop, Any, None]:
