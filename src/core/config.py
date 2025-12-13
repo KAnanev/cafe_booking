@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import ConfigDict, EmailStr
@@ -19,6 +20,8 @@ class Settings(BaseSettings):
     secret: str
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
+
+    postgres_db_override: Optional[str] = None
 
     # Логирование
     log_level: str = "INFO"
@@ -47,7 +50,7 @@ class Settings(BaseSettings):
         )
 
     model_config = ConfigDict(
-        env_file='../infra/.env',
+        env_file=Path(__file__).parent.parent.parent / 'infra' / '.env',
         env_file_encoding='utf-8',
     )
 
