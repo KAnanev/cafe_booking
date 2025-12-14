@@ -1,5 +1,1 @@
-"""API endpoints package.
-
-Роутеры подключаются из `api/routers.py` напрямую.
-Не импортируем здесь несуществующие модули, чтобы пакет мог импортироваться.
-"""
+from .user import router as user_router  # noqa F401
