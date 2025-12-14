@@ -86,10 +86,12 @@ class UserCreate(UserBase):
         return self
 
 
-class UserCreateInternal(UserBase):
+class UserCreateDB(UserBase):
     """Схема входящих данных при передаче в CRUD."""
 
     hashed_password: str
+    role: int
+    is_superuser: bool
 
 
 class UserUpdate(ActiveSchema, UserBase):
