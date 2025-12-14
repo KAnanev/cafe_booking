@@ -25,8 +25,8 @@ def build_booking_info(booking: Booking) -> BookingInfo:
             TablesSlotsInfo.model_validate(
                 {
                     **link.__dict__,
-                    "table": table_short,
-                    "slot": slot_short,
+                    'table': table_short,
+                    'slot': slot_short,
                 },
                 from_attributes=True,
             ),
@@ -35,9 +35,9 @@ def build_booking_info(booking: Booking) -> BookingInfo:
     return BookingInfo.model_validate(
         {
             **booking.__dict__,
-            "user": None,
-            "cafe": cafe_short,
-            "tables_slots": tables_slots,
+            'user': None,
+            'cafe': cafe_short,
+            'tables_slots': tables_slots,
         },
         from_attributes=True,
     )

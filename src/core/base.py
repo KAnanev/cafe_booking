@@ -9,12 +9,12 @@ from models.table import CafeTable
 from models.user import User
 
 __all__ = [
-    "Base",
-    "Booking",
-    "BookingStatus",
-    "BookingTableSlot",
-    "Cafe",
-    "TimeSlot",
-    "CafeTable",
-    "User",
+    'Base',
+    'Booking',
+    'BookingStatus',
+    'BookingTableSlot',
+    'Cafe',
+    'TimeSlot',
+    'CafeTable',
+    'User',
 ]

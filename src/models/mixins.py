@@ -33,5 +33,5 @@ class ActiveMixin:
         Boolean,
         nullable=False,
         default=True,
-        server_default=text("true"),
+        server_default=text('true'),
     )

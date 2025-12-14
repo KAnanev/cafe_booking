@@ -9,25 +9,25 @@ from models.mixins import ActiveMixin, TimestampMixin
 class CafeTable(TimestampMixin, ActiveMixin, Base):
     """Модель столов в кафе."""
 
-    __tablename__ = "tables"
+    __tablename__ = 'tables'
     __table_args__ = (
         CheckConstraint(
-            "seat_number > 0",
-            name="ck_tables_seat_number_positive",
+            'seat_number > 0',
+            name='ck_tables_seat_number_positive',
         ),
     )
 
     cafe_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("cafes.id", ondelete="CASCADE"),
+        ForeignKey('cafes.id', ondelete='CASCADE'),
         nullable=False,
     )
     seat_number = Column(Integer, nullable=False)
     description = Column(Text, nullable=True)
 
-    cafe = relationship("Cafe", back_populates="tables")
+    cafe = relationship('Cafe', back_populates='tables')
     booking_links = relationship(
-        "BookingTableSlot",
-        back_populates="table",
-        cascade="all, delete-orphan",
+        'BookingTableSlot',
+        back_populates='table',
+        cascade='all, delete-orphan',
     )

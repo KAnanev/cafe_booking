@@ -63,14 +63,14 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         """Проверяет, что дата бронирования не в прошлом."""
         today = datetime.now(timezone.utc).date()
         if booking_date < today:
-            msg = "Нельзя забронировать дату в прошлом."
+            msg = 'Нельзя забронировать дату в прошлом.'
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=msg)
 
     async def _get_cafe(self, cafe_id: UUID, session: AsyncSession) -> Cafe:
         """Проверяет наличие кафе."""
         cafe = await session.get(Cafe, cafe_id)
         if cafe is None or not cafe.is_active:
-            msg = "Кафе не найдено или не активно."
+            msg = 'Кафе не найдено или не активно.'
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail=msg)
         return cafe
 
@@ -88,12 +88,12 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
                 or not table.is_active
                 or table.cafe_id != cafe_id
             ):
-                msg = "Стол не найден или не относится к кафе."
+                msg = 'Стол не найден или не относится к кафе.'
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail=msg)
 
             slot = await session.get(TimeSlot, pair.slot_id)
             if slot is None or not slot.is_active or slot.cafe_id != cafe_id:
-                msg = "Слот не найден или не относится к кафе."
+                msg = 'Слот не найден или не относится к кафе.'
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail=msg)
 
     async def _ensure_slots_free(
@@ -119,7 +119,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
             )
             conflict = await session.execute(query)
             if conflict.scalars().first():
-                msg = "Слот стола уже занят на выбранную дату."
+                msg = 'Слот стола уже занят на выбранную дату.'
                 raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=msg)
 
     async def _save_tables_slots(

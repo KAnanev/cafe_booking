@@ -10,7 +10,7 @@ from models.mixins import ActiveMixin, TimestampMixin
 class Cafe(TimestampMixin, ActiveMixin, Base):
     """Модель кафе."""
 
-    __tablename__ = "cafes"
+    __tablename__ = 'cafes'
 
     name = Column(String(NAME_MAX_LENGTH), nullable=False)
     address = Column(String(255), nullable=False)
@@ -24,13 +24,13 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
     )
 
     tables = relationship(
-        "CafeTable",
-        back_populates="cafe",
-        cascade="all, delete-orphan",
+        'CafeTable',
+        back_populates='cafe',
+        cascade='all, delete-orphan',
     )
     slots = relationship(
-        "TimeSlot",
-        back_populates="cafe",
-        cascade="all, delete-orphan",
+        'TimeSlot',
+        back_populates='cafe',
+        cascade='all, delete-orphan',
     )
-    bookings = relationship("Booking", back_populates="cafe")
+    bookings = relationship('Booking', back_populates='cafe')

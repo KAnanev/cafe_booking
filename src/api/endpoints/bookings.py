@@ -10,7 +10,7 @@ from crud.booking import booking_crud
 from models.booking import Booking
 from schemas.booking import BookingCreate, BookingInfo
 
-router = APIRouter(prefix="/booking", tags=["Бронирования"])
+router = APIRouter(prefix='/booking', tags=['Бронирования'])
 
 
 async def _get_booking_or_404(
@@ -19,7 +19,7 @@ async def _get_booking_or_404(
 ) -> Booking:
     booking = await session.get(Booking, booking_id)
     if booking is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Бронь не найдена.")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, 'Бронь не найдена.')
     return booking
 
 
@@ -28,16 +28,16 @@ def _build_booking_response(booking: Booking) -> BookingInfo:
     return build_booking_info(booking)
 
 
-@router.get("/", response_model=list[BookingInfo])
+@router.get('/', response_model=list[BookingInfo])
 async def list_bookings(
-    show_all: bool = Query(False, description="Показывать все бронирования?"),
+    show_all: bool = Query(False, description='Показывать все бронирования?'),
     cafe_id: UUID | None = Query(
         None,
-        description="ID кафе для фильтрации бронирований.",
+        description='ID кафе для фильтрации бронирований.',
     ),
     user_id: UUID | None = Query(
         None,
-        description="ID пользователя для фильтрации бронирований.",
+        description='ID пользователя для фильтрации бронирований.',
     ),
     session: AsyncSession = Depends(get_async_session),
 ) -> list[BookingInfo]:
@@ -57,7 +57,7 @@ async def list_bookings(
 
 
 @router.post(
-    "/",
+    '/',
     response_model=BookingInfo,
     status_code=status.HTTP_201_CREATED,
 )
@@ -72,7 +72,7 @@ async def create_booking(
     return _build_booking_response(booking)
 
 
-@router.get("/{booking_id}", response_model=BookingInfo)
+@router.get('/{booking_id}', response_model=BookingInfo)
 async def get_booking(
     booking_id: UUID,
     session: AsyncSession = Depends(get_async_session),

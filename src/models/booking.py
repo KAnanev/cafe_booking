@@ -27,17 +27,17 @@ class BookingStatus(int, enum.Enum):
 class Booking(TimestampMixin, ActiveMixin, Base):
     """Модель бронирования столов в кафе."""
 
-    __tablename__ = "bookings"
+    __tablename__ = 'bookings'
 
     user_id = Column(UUID(as_uuid=True), nullable=True)
     cafe_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("cafes.id", ondelete="CASCADE"),
+        ForeignKey('cafes.id', ondelete='CASCADE'),
         nullable=False,
     )
     guest_number = Column(
         Integer,
-        CheckConstraint("guest_number > 0", name="ck_guest_number_positive"),
+        CheckConstraint('guest_number > 0', name='ck_guest_number_positive'),
         nullable=False,
     )
     note = Column(Text, nullable=True)
@@ -45,13 +45,13 @@ class Booking(TimestampMixin, ActiveMixin, Base):
         Integer,
         nullable=False,
         default=BookingStatus.BOOKING.value,
-        server_default=text("0"),
+        server_default=text('0'),
     )
     booking_date = Column(Date, nullable=False)
 
-    cafe = relationship("Cafe", back_populates="bookings")
+    cafe = relationship('Cafe', back_populates='bookings')
     tables_slots = relationship(
-        "BookingTableSlot",
-        back_populates="booking",
-        cascade="all, delete-orphan",
+        'BookingTableSlot',
+        back_populates='booking',
+        cascade='all, delete-orphan',
     )

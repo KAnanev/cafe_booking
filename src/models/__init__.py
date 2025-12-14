@@ -6,11 +6,11 @@ from models.table import CafeTable
 from models.user import User
 
 __all__ = [
-    "Booking",
-    "BookingStatus",
-    "BookingTableSlot",
-    "Cafe",
-    "TimeSlot",
-    "CafeTable",
-    "User",
+    'Booking',
+    'BookingStatus',
+    'BookingTableSlot',
+    'Cafe',
+    'TimeSlot',
+    'CafeTable',
+    'User',
 ]

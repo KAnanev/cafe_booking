@@ -42,16 +42,16 @@ class BookingCreate(BaseSchema):
     status: BookingStatus
     booking_date: date
 
-    @field_validator("booking_date")
+    @field_validator('booking_date')
     @classmethod
     def validate_booking_date(cls, value: date) -> date:
         """Нельзя бронировать прошлое."""
         if value < date.today():
-            msg = "Нельзя бронировать прошедшую дату."
+            msg = 'Нельзя бронировать прошедшую дату.'
             raise ValueError(msg)
         return value
 
-    @field_validator("tables_slots")
+    @field_validator('tables_slots')
     @classmethod
     def validate_tables_slots(
         cls,
@@ -59,7 +59,7 @@ class BookingCreate(BaseSchema):
     ) -> list[TablesSlots]:
         """Должна быть указана хотя бы одна пара стол/слот."""
         if not value:
-            msg = "Нужно указать хотя бы одну пару стол/слот."
+            msg = 'Нужно указать хотя бы одну пару стол/слот.'
             raise ValueError(msg)
         return value
 

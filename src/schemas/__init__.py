@@ -5,10 +5,10 @@ from schemas.table import TableShortInfo
 from schemas.user import UserShortInfo
 
 __all__ = [
-    "BookingCreate",
-    "BookingInfo",
-    "CafeShortInfo",
-    "TimeSlotShortInfo",
-    "TableShortInfo",
-    "UserShortInfo",
+    'BookingCreate',
+    'BookingInfo',
+    'CafeShortInfo',
+    'TimeSlotShortInfo',
+    'TableShortInfo',
+    'UserShortInfo',
 ]
