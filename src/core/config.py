@@ -4,12 +4,15 @@ from typing import Optional
 from pydantic import ConfigDict, EmailStr
 from pydantic_settings import BaseSettings
 
+from core.openapi import tags_metadata
+
 
 class Settings(BaseSettings):
     """Настройки приложения для бронирования мест в кафе."""
 
     app_title: str = 'Бронирование мест в кафе'
     app_desc: str = 'Сервис бронирования мест в кафе'
+    openapi_tags: list[dict] = tags_metadata
 
     postgres_host: str
     postgres_port: int

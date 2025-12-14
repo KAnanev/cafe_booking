@@ -1,10 +1,19 @@
 from fastapi import APIRouter
 
+from api.endpoints import auth_router
 from api.endpoints.cafes import router as cafes_router
 from api.endpoints.slots import router as slots_router
 from api.endpoints.tables import router as tables_router
 
+from core.constant import AUTH_TAG
+
 main_router = APIRouter()
+
+main_router.include_router(
+    auth_router,
+    prefix='/auth',
+    tags=[AUTH_TAG],
+)
 
 main_router.include_router(
     cafes_router,

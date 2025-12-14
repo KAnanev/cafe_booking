@@ -1,5 +1,4 @@
-from fastapi import HTTPException
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
+from fastapi import HTTPException, status
 
 
 class InvalidCredentials(HTTPException):
@@ -11,7 +10,7 @@ class InvalidCredentials(HTTPException):
     def __init__(self) -> None:
         """Инициализатор класса."""
         super().__init__(
-            status_code=HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid authentication credentials',
             headers={'WWW-Authenticate': 'Bearer'},
         )
@@ -26,6 +25,6 @@ class UserInactive(HTTPException):
     def __init__(self) -> None:
         """Инициализатор класса."""
         super().__init__(
-            status_code=HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='User is inactive',
         )

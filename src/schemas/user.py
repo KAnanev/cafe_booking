@@ -99,13 +99,3 @@ class UserUpdate(ActiveSchema, UserBase):
 
     Позволяет изменять контактную информацию и статус активности.
     """
-
-
-class UserToken(BaseSchema):
-    """Схема ответа при успешной аутентификации.
-
-    Содержит access token и его тип.
-    """
-
-    access_token: str
-    token_type: str

@@ -34,9 +34,14 @@ JWT_LIFETIME_SECONDS = 3600
 # Минимальная длина пароля
 MIN_PASSWORD_LENGTH = 3
 
+AUTH_TAG = 'Аутентификация'
+USERS_TAG = 'Пользователи'
+
 __all__ = [
     'NAME_MAX_LENGTH',
     'GT_ZERO',
     'JWT_LIFETIME_SECONDS',
     'MIN_PASSWORD_LENGTH',
+    'AUTH_TAG',
+    'USERS_TAG',
 ]
