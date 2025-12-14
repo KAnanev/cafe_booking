@@ -29,5 +29,19 @@ class UserCRUD(CRUDBase[User, UserCreate, UserUpdate]):
         result = await session.execute(select(User).where(User.phone == phone))
         return result.scalars().first()
 
+    async def get_by_login(
+        self,
+        login: str,
+        session: AsyncSession,
+    ) -> Optional[User]:
+        """Получает пользователя по email или phone."""
+        user_in = await self.get_by_email(login, session)
+        if not user_in:
+            user_in = await self.get_by_phone(login, session)
+
+        if not user_in:
+            return None
+        return user_in
+
 
 user_crud = UserCRUD(User)
