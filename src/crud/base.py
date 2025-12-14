@@ -1,4 +1,5 @@
 from typing import Generic, Optional, Sequence, Type, TypeVar
+from uuid import UUID
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -7,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.db import Base
 from models import User
 
-ModelType = TypeVar('ModelType', bound=Base)
-CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
-UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
+ModelType = TypeVar("ModelType", bound=Base)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -21,7 +22,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_by_id(
         self,
-        obj_id: int,
+        obj_id: UUID,
         session: AsyncSession,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
@@ -50,8 +51,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             k: v for k, v in obj_in_data.items() if k in model_columns
         }
 
-        if user is not None and 'user_id' in model_columns:
-            filtered_data['user_id'] = user.id
+        if user is not None and "user_id" in model_columns:
+            filtered_data["user_id"] = user.id
 
         db_obj = self.model(**filtered_data)
         session.add(db_obj)
@@ -83,13 +84,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Отключает объект."""
-        if hasattr(db_obj, 'is_active'):
-            setattr(db_obj, 'is_active', False)
+        if hasattr(db_obj, "is_active"):
+            setattr(db_obj, "is_active", False)
             session.add(db_obj)
             await session.commit()
             await session.refresh(db_obj)
             return db_obj
 
         raise AttributeError(
-            f'Модель {db_obj.__class__.__name__} не поддерживает отключение.',
+            f"Модель {db_obj.__class__.__name__} не поддерживает отключение.",
         )
