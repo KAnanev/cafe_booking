@@ -1,3 +1,2 @@
-"""Импорты класса Base и всех моделей для Alembic."""
-
-from core.db import Base  # noqa
+from core.db import Base  # noqa: F401
+from models import Cafe, Slot, Table, User, cafe_managers  # noqa: F401

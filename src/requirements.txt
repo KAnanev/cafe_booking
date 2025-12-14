@@ -1,6 +1,7 @@
 alembic==1.17.2
 fastapi==0.124.2
 psycopg2-binary==2.9.11
+asyncpg==0.30.0
 pydantic[email]==2.12.5
 pydantic-settings==2.12.0
 python-dotenv==1.2.1
