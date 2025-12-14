@@ -12,7 +12,7 @@ from schemas.slot import SlotCreate, SlotUpdate
 class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
     """CRUD для временных слотов."""
 
-    async def _exists_slot(
+    async def exists_slot(
         self,
         session: AsyncSession,
         cafe_id: UUID,
@@ -41,7 +41,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         related: dict[str, list] | None = None,
     ) -> Slot:
         """Создать новый временной слот с проверкой на уникальность."""
-        if await self._exists_slot(
+        if await self.exists_slot(
             session=session,
             cafe_id=obj_in.cafe_id,
             start=obj_in.start_time,
@@ -69,7 +69,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
                 'Начальное время не может быть больше или равно конечному',
             )
 
-        if await self._exists_slot(
+        if await self.exists_slot(
             session=session,
             cafe_id=cafe_id,
             start=start,
