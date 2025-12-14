@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     postgres_db: str
 
     secret: str
+    algorithm: str
+    access_token_expire_minutes: int
+
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
 
