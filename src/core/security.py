@@ -1,4 +1,12 @@
+from datetime import datetime, timedelta, timezone
+from uuid import UUID
+
+import jwt
+from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
+
+from core.config import settings
+from core.exceptions import InvalidToken
 
 password_hash = PasswordHash.recommended()
 
@@ -35,3 +43,58 @@ def get_password_hash(password: str) -> str:
 
     """
     return password_hash.hash(password)
+
+
+def create_access_token(
+    user_id: UUID,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """Создаёт JWT access-токен.
+
+    В токене хранится только идентификатор пользователя (sub),
+    без ролей и бизнес-данных.
+    """
+    now = datetime.now(timezone.utc)
+
+    expire = (
+        now + expires_delta
+        if expires_delta
+        else now + timedelta(minutes=settings.access_token_expire_minutes)
+    )
+
+    payload = {
+        'sub': str(user_id),
+        'iat': now,
+        'exp': expire,
+    }
+
+    return jwt.encode(
+        payload,
+        settings.secret,
+        algorithm=settings.algorithm,
+    )
+
+
+def decode_access_token(token: str) -> UUID:
+    """Декодирует и валидирует JWT access-токен.
+
+    Проверяет:
+    - корректность подписи
+    - срок действия токена (exp)
+    - наличие и корректность поля sub
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            settings.secret,
+            algorithms=[settings.algorithm],
+        )
+
+        user_id_str = payload.get('sub')
+        if not user_id_str:
+            raise InvalidToken
+
+        return UUID(user_id_str)
+
+    except (InvalidTokenError, ValueError):
+        raise InvalidToken
