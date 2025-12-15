@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import get_async_session
+from core.logging import set_user_context
 from models.user import Roles, User
 
 security = HTTPBearer(auto_error=False)
@@ -55,6 +56,13 @@ async def get_current_user(
             detail='Пользователь неактивен.',
         )
 
+    # Устанавливаем контекст пользователя для логирования
+    set_user_context(
+        user_id=user.id,
+        username=user.email,
+        email=user.email,
+        role=user.role.name if hasattr(user.role, 'name') else str(user.role),
+    )
     return user
 
 
