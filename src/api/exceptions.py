@@ -2,6 +2,17 @@ from fastapi import HTTPException
 from starlette import status
 
 
+class UserAlreadyExistsHTTP(HTTPException):
+    """Пользовотель уже существует."""
+
+    def __init__(self, detail: str = 'Пользователь уже существует.') -> None:
+        """Инициализатор класса."""
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+        )
+
+
 class InvalidCredentialsHTTP(HTTPException):
     """Кастомное исключение InvalidCredential.
 
@@ -46,7 +57,7 @@ class UserNotFoundHTTP(HTTPException):
 
 
 class PermissionDeniedHTTP(HTTPException):
-    """403 Forbidden — недостаточно прав для выполнения операции."""
+    """Недостаточно прав для выполнения операции."""
 
     def __init__(self, detail: str = 'Недостаточно прав') -> None:
         """Инициализатор класса."""

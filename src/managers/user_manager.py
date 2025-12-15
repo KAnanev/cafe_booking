@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.constants import ADMIN_ONLY_USER_UPDATE_FIELDS
 from core.security import get_password_hash
 from crud.user import user_crud
-from managers.exceptions import PermissionDenied
+from managers.exceptions import PermissionDenied, UserAlreadyExists
 from models.user import User, UserRoles
 from schemas.user import (
     UserAdminUpdate,
@@ -38,7 +38,9 @@ class UserManager:
                 session=self.session,
             )
             if existing_by_email:
-                raise ValueError(f'Пользователь {user.email} уже существует')
+                raise UserAlreadyExists(
+                    f'Пользователь {user.email} уже существует',
+                )
 
         if user.phone is not None:
             existing_by_phone = await user_crud.get_by_phone(
@@ -46,11 +48,13 @@ class UserManager:
                 session=self.session,
             )
             if existing_by_phone:
-                raise ValueError(f'Пользователь {user.phone} уже существует')
+                raise UserAlreadyExists(
+                    f'Пользователь {user.email} уже существует',
+                )
 
         hashed_password = get_password_hash(user.password)
         user_internal = UserCreateDB(
-            **user.model_dump(exclude={'password'}),
+            **user.model_dump(exclude={'password', 'role'}),
             hashed_password=hashed_password,
             role=role,
             is_superuser=is_superuser,

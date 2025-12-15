@@ -8,3 +8,7 @@ class UserInactive(Exception):
 
 class PermissionDenied(Exception):
     """Исключение, когда в доступе отказано."""
+
+
+class UserAlreadyExists(Exception):
+    """Исключение, когда пользователь уже существует."""

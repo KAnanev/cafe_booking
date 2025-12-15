@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.base import CRUDBase
 from models.user import User
-from schemas.user import UserCreate, UserUpdate
+from schemas.user import UserAdminUpdate, UserCreate
 
 
-class UserCRUD(CRUDBase[User, UserCreate, UserUpdate]):
+class UserCRUD(CRUDBase[User, UserCreate, UserAdminUpdate]):
     """CRUD операции для модели User."""
 
     async def get_by_email(

@@ -1,11 +1,11 @@
 import asyncio
 import os
-from asyncio import AbstractEventLoop
-from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
-from typing import Any
+import sys
+from collections.abc import AsyncGenerator, Awaitable, Callable
 
 import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -15,20 +15,21 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from core.config import Settings
-from core.db import Base
+from core.db import Base, get_async_session
+from main import app
 from models.user import User, UserRoles
 from schemas.user import UserCreate
 
 from .fixtures.test_data import DEFAULT_HASH, DEFAULT_PASSWORD
 
+# --- Event loop policy for Windows (asyncpg compatibility) ---
+if sys.platform.startswith('win'):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 @pytest.fixture(scope='session')
 def test_settings() -> Settings:
-    """Предоставляет настройки для тестового окружения.
-
-    Подменяет имя базы данных на фиксированную тестовую БД 'test_cafe_booking',
-    остальные параметры из переменных окружения или значений по умолчанию.
-    """
+    """Возвращает настройки приложения для тестового окружения."""
     return Settings(
         postgres_host=os.getenv('POSTGRES_HOST', 'localhost'),
         postgres_port=int(os.getenv('POSTGRES_PORT', '5432')),
@@ -40,70 +41,58 @@ def test_settings() -> Settings:
     )
 
 
-@pytest.fixture(scope='session')
-def test_engine(test_settings: Settings) -> AsyncEngine:
-    """Создаёт асинхронный SQLAlchemy-движок для тестовой базы данных.
+@pytest_asyncio.fixture(scope='session')
+async def test_engine(
+    test_settings: Settings,
+) -> AsyncGenerator[AsyncEngine, None]:
+    """Создаёт асинхронный SQLAlchemy engine для тестовой БД.
 
-    Использует пул NullPool, чтобы избежать утечек соединений и конфликтов
-    при параллельном или повторном запуске тестов.
+    Таблицы создаются один раз перед запуском тестов
+    и удаляются после завершения всей сессии.
     """
-    return create_async_engine(
+    engine = create_async_engine(
         test_settings.database_url,
         echo=False,
         poolclass=NullPool,
     )
 
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-@pytest_asyncio.fixture(scope='function')
+    yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
 async def db_session(
     test_engine: AsyncEngine,
 ) -> AsyncGenerator[AsyncSession, None]:
-    """Предоставляет изолированную асинхронную сессию БД для каждого теста.
+    """Предоставляет изолированную сессию БД для одного теста.
 
-    Перед выполнением теста удаляет все таблицы и создаёт их заново,
-    обеспечивая чистое состояние. После завершения теста сессия закрывается.
+    После выполнения теста все изменения откатываются.
     """
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-
     session_factory = async_sessionmaker(
         bind=test_engine,
         class_=AsyncSession,
         expire_on_commit=False,
-        autoflush=False,
-        autocommit=False,
     )
 
     async with session_factory() as session:
-        yield session
-
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-
-@pytest.fixture(scope='session')
-def event_loop() -> Generator[AbstractEventLoop, Any, None]:
-    """Создаёт и управляет жизненным циклом event loop'а для pytest-asyncio.
-
-    Обеспечивает стабильную работу асинхронных фикстур и тестов,
-    изолируя их от глобального цикла событий.
-    """
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+        try:
+            yield session
+        finally:
+            await session.rollback()
 
 
 @pytest_asyncio.fixture
 async def create_user(
     db_session: AsyncSession,
 ) -> Callable[..., Awaitable[User]]:
-    """Фабрика для создания и сохранения пользователей в тестовой БД.
-
-    Принимает email, телефон, имя пользователя и опциональные параметры
-    (хеш пароля, роль). Возвращает сохранённый экземпляр модели User.
-    Роль по умолчанию — UserRole.USER (значение 3).
-    """
+    """Фабрика для создания пользователя напрямую в тестовой БД."""
 
     async def _create_user(
         *,
@@ -111,7 +100,7 @@ async def create_user(
         phone: str,
         username: str,
         hashed_password: str = DEFAULT_HASH,
-        role: int = UserRoles.USER,
+        role: UserRoles = UserRoles.USER,
     ) -> User:
         user = User(
             email=email,
@@ -130,11 +119,7 @@ async def create_user(
 
 @pytest.fixture
 def user_create_data() -> Callable[..., UserCreate]:
-    """Фабрика для создания валидных Pydantic-объектов UserCreate.
-
-    Используется для имитации входных данных от API (регистрация).
-    Пароль по умолчанию — 'secret', остальные поля задаются явно.
-    """
+    """Фабрика валидных данных UserCreate для API-тестов."""
 
     def _user_create(
         *,
@@ -151,3 +136,33 @@ def user_create_data() -> Callable[..., UserCreate]:
         )
 
     return _user_create
+
+
+@pytest_asyncio.fixture
+async def async_client(
+    test_engine: AsyncEngine,
+) -> AsyncGenerator[AsyncClient, None]:
+    """HTTP-клиент FastAPI с подменённой зависимостью БД."""
+    session_factory = async_sessionmaker(
+        bind=test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async def override_get_async_session() -> AsyncGenerator[
+        AsyncSession,
+        None,
+    ]:
+        async with session_factory() as session:
+            yield session
+
+    app.dependency_overrides[get_async_session] = override_get_async_session
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport,
+        base_url='http://test',
+    ) as client:
+        yield client
+
+    app.dependency_overrides.clear()
