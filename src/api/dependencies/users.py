@@ -1,9 +1,12 @@
+from typing import Any, Callable, Coroutine
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.exceptions import (
     InvalidCredentialsHTTP,
+    PermissionDeniedHTTP,
     UserInactiveHTTP,
     UserNotFoundHTTP,
 )
@@ -11,7 +14,7 @@ from core.db import get_async_session
 from core.exceptions import InvalidToken
 from core.security import decode_access_token
 from crud.user import user_crud
-from models.user import User
+from models.user import User, UserRoles
 from core.logging import set_user_context
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
@@ -48,15 +51,21 @@ async def get_current_user(
     return user
 
 
-# def required_role(role: UserRoles) -> Callable[[User], Awaitable[User]]:
-#     """Возвращает зависимость, проверяющую минимальную роль пользователя."""
-#
-#     async def check_role(user: User = Depends(get_current_user)) -> User:
-#         if user.role < role:
-#             raise HTTPException(
-#                 status_code=HTTPStatus.FORBIDDEN,
-#                 detail='Недостаточно прав.',
-#             )
-#         return user
-#
-#     return check_role
+def require_role(
+    *allowed_roles: UserRoles,
+) -> Callable[..., Coroutine[Any, Any, User]]:
+    """Проверка роли пользователя.
+
+    Используется для ограничения доступа к эндпоинтам
+    на основе роли (ADMIN, MANAGER, ...).
+    """
+
+    async def role_checker(
+        current_user: User = Depends(get_current_user),
+    ) -> User:
+        """Проверяет роль текущего пользователя."""
+        if current_user.role not in allowed_roles:
+            raise PermissionDeniedHTTP()
+        return current_user
+
+    return role_checker

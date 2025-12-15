@@ -7,6 +7,7 @@ from pydantic import (
     model_validator,
 )
 
+from models.user import UserRoles
 from schemas.base import (
     ActiveSchema,
     BaseSchema,
@@ -59,7 +60,7 @@ class UserDB(ActiveSchema, TimestampSchema, UserBase, UUIDIDSchema):
     флаг активности и целочисленную роль (например, 0 — admin, 3 — user).
     """
 
-    role: int
+    role: UserRoles
 
 
 class UserCreate(UserBase):
@@ -90,12 +91,28 @@ class UserCreateDB(UserBase):
     """Схема входящих данных при передаче в CRUD."""
 
     hashed_password: str
-    role: int
+    role: UserRoles
     is_superuser: bool
 
 
-class UserUpdate(ActiveSchema, UserBase):
+class UserMeUpdate(BaseSchema):
     """Схема для частичного обновления данных пользователя.
 
-    Позволяет изменять контактную информацию и статус активности.
+    Позволяет изменять контактную информацию.
     """
+
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    tg_id: Optional[str] = None
+    password: Optional[str] = None
+
+
+class UserAdminUpdate(UserMeUpdate):
+    """Схема для частичного обновления данных пользователя админом.
+
+    Позволяет изменять контактную информацию роли и статус активности.
+    """
+
+    role: Optional[UserRoles] = None
+    is_active: Optional[bool] = None

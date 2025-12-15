@@ -43,3 +43,14 @@ class UserNotFoundHTTP(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Пользователь не найден',
         )
+
+
+class ForbiddenHTTP(HTTPException):
+    """Кастомное исключение Forbidden."""
+
+    def __init__(self) -> None:
+        """Инициализатор класса."""
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Недостаточно прав для выполнения операции',
+        )
