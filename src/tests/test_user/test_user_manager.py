@@ -3,16 +3,11 @@ from typing import Callable
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from managers.exceptions import UserAlreadyExists
 from managers.user_manager import UserManager
 
 from .fixtures.test_data import (
-    DEFAULT_PASSWORD,
-    TEST_EMAIL_1,
-    TEST_EMAIL_2,
-    TEST_PHONE_1,
-    TEST_PHONE_2,
-    USERNAME_1,
-    USERNAME_2,
+    DEFAULT_HASH,
 )
 
 
@@ -27,18 +22,15 @@ class TestUserManager:
     ) -> None:
         """Тестирует успешное создание пользователя."""
         user_in = user_create_data(
-            email=TEST_EMAIL_1,
-            phone=TEST_PHONE_1,
-            username=USERNAME_1,
-            password=DEFAULT_PASSWORD,
+            username='user',
         )
         manager = UserManager(session=db_session)
 
         result = await manager.create_user(user_in)
 
-        assert result.email == TEST_EMAIL_1
-        assert result.phone == TEST_PHONE_1
-        assert result.username == USERNAME_1
+        assert result.email == user_in.email
+        assert result.phone == user_in.phone
+        assert result.username == user_in.username
 
         from core.security import verify_password
         from crud.user import user_crud
@@ -48,8 +40,8 @@ class TestUserManager:
             session=db_session,
         )
         assert db_user is not None
-        assert db_user.email == TEST_EMAIL_1
-        assert verify_password(DEFAULT_PASSWORD, db_user.hashed_password)
+        assert db_user.email == user_in.email
+        assert verify_password(DEFAULT_HASH, db_user.hashed_password)
 
     @pytest.mark.asyncio
     async def test_create_user_email_already_exists(
@@ -62,22 +54,18 @@ class TestUserManager:
 
         C уже существующим email.
         """
-        await create_user(
-            email=TEST_EMAIL_1,
-            phone=TEST_PHONE_2,
-            username=USERNAME_1,
+        user = await create_user(
+            username='user',
         )
 
         user_in = user_create_data(
-            email=TEST_EMAIL_1,
-            phone=TEST_PHONE_1,
-            username=USERNAME_2,
+            username='user',
+            email=user.email,
         )
         manager = UserManager(session=db_session)
 
         with pytest.raises(
-            ValueError,
-            match='Пользователь test@example.com уже существует',
+            UserAlreadyExists,
         ):
             await manager.create_user(user_in)
 
@@ -92,21 +80,17 @@ class TestUserManager:
 
         С уже существующим телефоном.
         """
-        await create_user(
-            email=TEST_EMAIL_2,
-            phone=TEST_PHONE_1,
-            username=USERNAME_1,
+        user = await create_user(
+            username='user',
         )
 
         user_in = user_create_data(
-            email=TEST_EMAIL_1,
-            phone=TEST_PHONE_1,
-            username=USERNAME_2,
+            username='user',
+            phone=user.phone,
         )
         manager = UserManager(session=db_session)
 
         with pytest.raises(
-            ValueError,
-            match=r'Пользователь \+79991234567 уже существует',
+            UserAlreadyExists,
         ):
             await manager.create_user(user_in)

@@ -1,9 +1,11 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.permissions import allow_anonymous_or_roles
 from api.dependencies.users import require_role
-from api.exceptions import UserAlreadyExistsHTTP
+from api.exceptions import UserAlreadyExistsHTTP, UserNotFoundHTTP
 from core.db import get_async_session
 from crud.user import user_crud
 from managers.exceptions import UserAlreadyExists
@@ -61,3 +63,26 @@ async def get_all_users(
     Только для администраторов или менеджеров.
     """
     return await user_crud.get_multi(session=session)
+
+
+@router.get(
+    '/{user_id}',
+    response_model=UserDB,
+    status_code=status.HTTP_200_OK,
+    summary='Получение информации о пользователе по его ID',
+)
+async def get_user(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+    _: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
+) -> UserDB:
+    """Возвращает информацию о пользователе по его ID.
+
+    Только для администраторов или менеджеров
+    """
+    user = await user_crud.get_by_id(session=session, obj_id=user_id)
+
+    if not user:
+        raise UserNotFoundHTTP()
+
+    return UserDB.model_validate(user, from_attributes=True)

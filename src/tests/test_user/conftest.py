@@ -143,16 +143,24 @@ def user_create_data() -> Callable[..., UserCreate]:
 
     def _user_create(
         *,
-        email: str,
-        phone: str,
+        email: str | None = None,
+        phone: str | None = None,
         username: str,
-        password: str = DEFAULT_PASSWORD,
+        hashed_password: str = DEFAULT_HASH,
     ) -> UserCreate:
+        suffix = str(uuid.uuid4().int)[:7]
+
+        if not email:
+            email = f'{username}_{suffix}@example.ru'
+
+        if not phone:
+            phone = f'+7999{suffix}'
+
         return UserCreate(
             email=email,
             phone=phone,
-            username=username,
-            password=password,
+            username=f'{username}_{suffix}',
+            password=hashed_password,
         )
 
     return _user_create
@@ -256,5 +264,5 @@ def new_user_payload(user_create_data: Callable) -> UserCreate:
         email=f'new_user_{suffix}@example.ru',
         phone=f'+7999{suffix}',
         username=f'new_user_{suffix}',
-        password=DEFAULT_PASSWORD,
+        hashed_password=DEFAULT_PASSWORD,
     )

@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Generic, Optional, Sequence, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -21,7 +21,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_by_id(
         self,
-        obj_id: int,
+        obj_id: Any,
         session: AsyncSession,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
