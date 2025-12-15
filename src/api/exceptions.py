@@ -3,10 +3,10 @@ from starlette import status
 
 
 class UserAlreadyExistsHTTP(HTTPException):
-    """Пользовотель уже существует."""
+    """Пользователь с такими данными уже существует."""
 
     def __init__(self, detail: str = 'Пользователь уже существует.') -> None:
-        """Инициализатор класса."""
+        """Инициализирует HTTP-исключение."""
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
@@ -14,13 +14,10 @@ class UserAlreadyExistsHTTP(HTTPException):
 
 
 class InvalidCredentialsHTTP(HTTPException):
-    """Кастомное исключение InvalidCredential.
-
-    Когда пользователь с указанным логином не найден.
-    """
+    """Неверные или недействительные учетные данные."""
 
     def __init__(self) -> None:
-        """Инициализатор класса."""
+        """Инициализирует HTTP-исключение."""
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Не удалось проверить учетные данные.',
@@ -29,13 +26,10 @@ class InvalidCredentialsHTTP(HTTPException):
 
 
 class UserInactiveHTTP(HTTPException):
-    """Кастомное исключение InvalidCredential.
-
-    Когда пользователь отключен.
-    """
+    """Пользователь отключен и не может выполнять действия."""
 
     def __init__(self) -> None:
-        """Инициализатор класса."""
+        """Инициализирует HTTP-исключение."""
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Пользователь неактивен',
@@ -43,13 +37,10 @@ class UserInactiveHTTP(HTTPException):
 
 
 class UserNotFoundHTTP(HTTPException):
-    """Кастомное исключение UserNotFound.
-
-    Когда пользователь не найден.
-    """
+    """Пользователь не найден."""
 
     def __init__(self) -> None:
-        """Инициализатор класса."""
+        """Инициализирует HTTP-исключение."""
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Пользователь не найден',
@@ -60,7 +51,7 @@ class PermissionDeniedHTTP(HTTPException):
     """Недостаточно прав для выполнения операции."""
 
     def __init__(self, detail: str = 'Недостаточно прав') -> None:
-        """Инициализатор класса."""
+        """Инициализирует HTTP-исключение."""
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=detail,
