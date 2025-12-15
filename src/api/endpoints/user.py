@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.permissions import allow_anonymous_or_roles
+from api.dependencies.users import require_role
 from api.exceptions import UserAlreadyExistsHTTP
 from core.db import get_async_session
+from crud.user import user_crud
 from managers.exceptions import UserAlreadyExists
 from managers.user_manager import UserManager
 from models.user import User, UserRoles
@@ -21,7 +23,7 @@ router = APIRouter()
 async def create_user(
     user_in: UserCreate,
     session: AsyncSession = Depends(get_async_session),
-    actor: User | None = Depends(
+    _: User | None = Depends(
         allow_anonymous_or_roles(
             UserRoles.ADMIN,
             UserRoles.MANAGER,
@@ -44,13 +46,18 @@ async def create_user(
         raise UserAlreadyExistsHTTP(str(exc))
 
 
-# @router.get(
-#     '/',
-#     response_model=list[UserDB],
-#     status_code=status.HTTP_200_OK,
-#     summary='Получение списка пользователей',
-# )
-# async def get_all_users(
-#     session: AsyncSession = Depends(get_async_session),
-# )->list[UserDB]:
-#     pass
+@router.get(
+    '/',
+    response_model=list[UserDB],
+    status_code=status.HTTP_200_OK,
+    summary='Получение списка пользователей',
+)
+async def get_all_users(
+    session: AsyncSession = Depends(get_async_session),
+    _: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
+) -> list[UserDB]:
+    """Возвращает информацию о всех пользователях.
+
+    Только для администраторов или менеджеров.
+    """
+    return await user_crud.get_multi(session=session)

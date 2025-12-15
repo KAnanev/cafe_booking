@@ -5,15 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User, UserRoles
 from schemas.user import UserCreate
 
-from .fixtures.test_data import TEST_EMAIL_1, USERNAME_1
-
-PASSWORD: str = 'superpassword'
-USERS_ROUTE: str = '/users/'
-PAYLOAD: dict[str, str] = {
-    'username': USERNAME_1,
-    'email': TEST_EMAIL_1,
-    'password': PASSWORD,
-}
+from .fixtures.test_data import PAYLOAD, TEST_EMAIL_1, USERNAME_1, USERS_ROUTE
 
 
 @pytest.mark.asyncio

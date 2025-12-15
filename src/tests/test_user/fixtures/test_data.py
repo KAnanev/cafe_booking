@@ -27,6 +27,13 @@ USERNAME_9 = 'conflictinguser'
 
 DEFAULT_PASSWORD = 'secret'
 DEFAULT_HASH = 'fake_hash'
-USER_TEST_LOCAL = 'user@test.local'
-MANAGER_TEST_LOCAL = 'manager@test.local'
-ADMIN_TEST_LOCAL = 'admin@test.local'
+USER_TEST_LOCAL = 'user@test.com'
+MANAGER_TEST_LOCAL = 'manager@test.com'
+ADMIN_TEST_LOCAL = 'admin@test.com'
+PASSWORD: str = 'superpassword'
+USERS_ROUTE: str = '/users/'
+PAYLOAD: dict[str, str] = {
+    'username': USERNAME_1,
+    'email': TEST_EMAIL_1,
+    'password': PASSWORD,
+}

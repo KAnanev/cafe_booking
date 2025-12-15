@@ -23,14 +23,8 @@ from models.user import User, UserRoles
 from schemas.user import UserCreate
 
 from .fixtures.test_data import (
-    ADMIN_TEST_LOCAL,
     DEFAULT_HASH,
     DEFAULT_PASSWORD,
-    MANAGER_TEST_LOCAL,
-    TEST_PHONE_1,
-    TEST_PHONE_2,
-    TEST_PHONE_3,
-    USER_TEST_LOCAL,
 )
 
 # ---------------------------------------------------------------------
@@ -123,16 +117,15 @@ async def create_user(
 
     async def _create_user(
         *,
-        email: str,
-        phone: str,
         username: str,
         hashed_password: str = DEFAULT_HASH,
         role: UserRoles = UserRoles.USER,
     ) -> User:
+        suffix = str(uuid.uuid4().int)[:7]
         user = User(
-            email=email,
-            phone=phone,
-            username=username,
+            email=f'{username}_{suffix}@example.ru',
+            phone=f'+7999{suffix}',
+            username=f'{username}_{suffix}',
             hashed_password=hashed_password,
             role=role,
         )
@@ -209,8 +202,6 @@ async def async_client(
 async def regular_user(create_user: Callable) -> User:
     """Пользователь с ролью USER."""
     return await create_user(
-        email=USER_TEST_LOCAL,
-        phone=TEST_PHONE_3,
         username='user',
         role=UserRoles.USER,
     )
@@ -220,8 +211,6 @@ async def regular_user(create_user: Callable) -> User:
 async def admin_user(create_user: Callable) -> User:
     """Пользователь с ролью ADMIN."""
     return await create_user(
-        email=ADMIN_TEST_LOCAL,
-        phone=TEST_PHONE_1,
         username='admin',
         role=UserRoles.ADMIN,
     )
@@ -231,8 +220,6 @@ async def admin_user(create_user: Callable) -> User:
 async def manager_user(create_user: Callable) -> User:
     """Пользователь с ролью MANAGER."""
     return await create_user(
-        email=MANAGER_TEST_LOCAL,
-        phone=TEST_PHONE_2,
         username='manager',
         role=UserRoles.MANAGER,
     )
