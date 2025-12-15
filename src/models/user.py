@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.constant import ROLE_ADMIN, ROLE_MANAGER, ROLE_USER
+from core.constants import ROLE_ADMIN, ROLE_MANAGER, ROLE_USER
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 

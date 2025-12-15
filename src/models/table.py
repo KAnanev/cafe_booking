@@ -5,7 +5,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.constant import (
+from core.constants import (
     TABLE_DESCRIPTION_MAX_LENGTH,
     TABLE_MAX_SEATS_NUMBER,
     TABLE_MIN_SEATS_NUMBER,

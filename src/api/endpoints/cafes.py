@@ -42,7 +42,9 @@ async def create_cafe(
 ) -> CafeRead:
     """Создать кафе."""
     cafe = await cafe_crud.create(
-        obj_in=cafe_in, session=session, commit=False,
+        obj_in=cafe_in,
+        session=session,
+        commit=False,
     )
     await session.flush()
     if current_user.role == Roles.MANAGER:

@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import ConfigDict, Field, model_validator
 
-from core.constant import DESCRIPTION_MAX_LENGTH, DESCRIPTION_MIN_LENGTH
+from core.constants import DESCRIPTION_MAX_LENGTH, DESCRIPTION_MIN_LENGTH
 from schemas.base import (
     ActiveSchema,
     BaseSchema,
