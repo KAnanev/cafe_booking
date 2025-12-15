@@ -1,17 +1,15 @@
 # src/media/permissions.py
 from fastapi import Depends, HTTPException, status
 
-from src.core.security import get_current_user
-from src.users.models import User
+from api.dependencies.users import get_current_user
+from models.user import Roles, User
 
 
-ALLOWED_ROLES = {"admin", "manager"}
-
-
-def can_upload_image(
+async def can_upload_image(
     user: User = Depends(get_current_user),
 ) -> User:
-    if user.role not in ALLOWED_ROLES:
+    """Allow only managers and admins to upload images."""
+    if user.role not in (Roles.MANAGER, Roles.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions to upload image",

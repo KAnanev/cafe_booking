@@ -1,7 +1,8 @@
 # src/media/schemas.py
-from uuid import UUID
-from pydantic import BaseModel
+from schemas.base import UUIDIDSchema
 
 
-class ImageUploadResponse(BaseModel):
-    id: UUID
+class ImageUploadResponse(UUIDIDSchema):
+    """Ответ при загрузке изображения."""
+
+    pass

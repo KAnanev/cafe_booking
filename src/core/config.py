@@ -1,4 +1,5 @@
 from typing import Optional
+from pathlib import Path
 
 from pydantic import ConfigDict, EmailStr
 from pydantic_settings import BaseSettings
@@ -19,6 +20,7 @@ class Settings(BaseSettings):
     secret: str
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
+    media_storage_path: str = "media_storage/images"
 
     @property
     def database_url(self) -> str:

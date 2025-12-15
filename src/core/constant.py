@@ -34,9 +34,15 @@ JWT_LIFETIME_SECONDS = 3600
 # Минимальная длина пароля
 MIN_PASSWORD_LENGTH = 3
 
+# Изображения
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+ALLOWED_IMAGE_CONTENT_TYPES = {"image/jpeg", "image/png"}
+
 __all__ = [
     'NAME_MAX_LENGTH',
     'GT_ZERO',
     'JWT_LIFETIME_SECONDS',
     'MIN_PASSWORD_LENGTH',
+    'MAX_IMAGE_SIZE',
+    'ALLOWED_IMAGE_CONTENT_TYPES',
 ]
