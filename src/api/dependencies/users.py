@@ -1,62 +1,43 @@
-from http import HTTPStatus
-from typing import Awaitable, Callable
-from uuid import UUID
-
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.exceptions import (
+    InvalidCredentialsHTTP,
+    UserInactiveHTTP,
+    UserNotFoundHTTP,
+)
 from core.db import get_async_session
-from models.user import User, UserRoles
+from core.exceptions import InvalidToken
+from core.security import decode_access_token
+from crud.user import user_crud
+from models.user import User
 from core.logging import set_user_context
-from models.user import Roles, User
 
-security = HTTPBearer(auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: AsyncSession = Depends(get_async_session),
+    token: str = Depends(oauth2_scheme),
 ) -> User:
-    """Текущий пользователь."""
-    if credentials is None:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Необходимо авторизоваться.',
-        )
+    """Получение текущего аутентифицированного пользователя.
 
-    token = (credentials.credentials or '').strip()
-    if not token:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пустой токен авторизации.',
-        )
-
-    user: User | None = None
+    Извлекает JWT access-токен из заголовка Authorization,
+    декодирует его, загружает пользователя из базы данных
+    и проверяет его активность.
+    """
     try:
-        user_id = UUID(token)
-        result = await session.execute(
-            select(User).where(User.id == user_id),
-        )
-        user = result.scalars().first()
-    except ValueError:
-        result = await session.execute(
-            select(User).where(User.email == token),
-        )
-        user = result.scalars().first()
+        user_id = decode_access_token(token)
+    except InvalidToken:
+        raise InvalidCredentialsHTTP()
 
-    if user is None:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пользователь не найден.',
-        )
-    if hasattr(user, 'is_active') and not user.is_active:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пользователь неактивен.',
-        )
+    user = await user_crud.get_by_id(obj_id=user_id, session=session)
+    if not user:
+        raise UserNotFoundHTTP()
 
+    if not user.is_active:
+        raise UserInactiveHTTP()
     # Устанавливаем контекст пользователя для логирования
     set_user_context(
         user_id=user.id,
@@ -67,15 +48,15 @@ async def get_current_user(
     return user
 
 
-def required_role(role: UserRoles) -> Callable[[User], Awaitable[User]]:
-    """Возвращает зависимость, проверяющую минимальную роль пользователя."""
-
-    async def check_role(user: User = Depends(get_current_user)) -> User:
-        if user.role < role:
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN,
-                detail='Недостаточно прав.',
-            )
-        return user
-
-    return check_role
+# def required_role(role: UserRoles) -> Callable[[User], Awaitable[User]]:
+#     """Возвращает зависимость, проверяющую минимальную роль пользователя."""
+#
+#     async def check_role(user: User = Depends(get_current_user)) -> User:
+#         if user.role < role:
+#             raise HTTPException(
+#                 status_code=HTTPStatus.FORBIDDEN,
+#                 detail='Недостаточно прав.',
+#             )
+#         return user
+#
+#     return check_role
