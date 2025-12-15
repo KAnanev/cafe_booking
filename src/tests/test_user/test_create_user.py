@@ -3,6 +3,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User, UserRoles
+from schemas.user import UserCreate
 
 from .fixtures.test_data import TEST_EMAIL_1, USERNAME_1
 
@@ -83,3 +84,53 @@ async def test_register_user_without_password(
     )
 
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_user_authorized_user_forbidden(
+    async_client: AsyncClient,
+    user_token: str,
+    new_user_payload: UserCreate,
+) -> None:
+    """Авторизованный USER не может создавать пользователей."""
+    response = await async_client.post(
+        USERS_ROUTE,
+        json=new_user_payload.model_dump(),
+        headers={'Authorization': f'Bearer {user_token}'},
+    )
+
+    assert response.status_code == 403, response.text
+
+
+@pytest.mark.asyncio
+async def test_create_user_manager_allowed(
+    async_client: AsyncClient,
+    manager_token: str,
+    new_user_payload: UserCreate,
+) -> None:
+    """MANAGER может создавать пользователей."""
+    response = await async_client.post(
+        USERS_ROUTE,
+        json=new_user_payload.model_dump(),
+        headers={'Authorization': f'Bearer {manager_token}'},
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()['username'] == new_user_payload.username
+
+
+@pytest.mark.asyncio
+async def test_create_user_admin_allowed(
+    async_client: AsyncClient,
+    admin_token: str,
+    new_user_payload: UserCreate,
+) -> None:
+    """ADMIN может создавать пользователей."""
+    response = await async_client.post(
+        USERS_ROUTE,
+        json=new_user_payload.model_dump(),
+        headers={'Authorization': f'Bearer {admin_token}'},
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()['username'] == new_user_payload.username

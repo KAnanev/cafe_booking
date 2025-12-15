@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 
 import pytest
@@ -16,20 +17,38 @@ from sqlalchemy.pool import NullPool
 
 from core.config import Settings
 from core.db import Base, get_async_session
+from core.security import create_access_token
 from main import app
 from models.user import User, UserRoles
 from schemas.user import UserCreate
 
-from .fixtures.test_data import DEFAULT_HASH, DEFAULT_PASSWORD
+from .fixtures.test_data import (
+    ADMIN_TEST_LOCAL,
+    DEFAULT_HASH,
+    DEFAULT_PASSWORD,
+    MANAGER_TEST_LOCAL,
+    TEST_PHONE_1,
+    TEST_PHONE_2,
+    TEST_PHONE_3,
+    USER_TEST_LOCAL,
+)
 
-# --- Event loop policy for Windows (asyncpg compatibility) ---
+# ---------------------------------------------------------------------
+# Event loop policy (Windows)
+# ---------------------------------------------------------------------
+
 if sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
+# ---------------------------------------------------------------------
+# Test settings & database
+# ---------------------------------------------------------------------
+
+
 @pytest.fixture(scope='session')
 def test_settings() -> Settings:
-    """Возвращает настройки приложения для тестового окружения."""
+    """Настройки приложения для тестового окружения."""
     return Settings(
         postgres_host=os.getenv('POSTGRES_HOST', 'localhost'),
         postgres_port=int(os.getenv('POSTGRES_PORT', '5432')),
@@ -45,11 +64,7 @@ def test_settings() -> Settings:
 async def test_engine(
     test_settings: Settings,
 ) -> AsyncGenerator[AsyncEngine, None]:
-    """Создаёт асинхронный SQLAlchemy engine для тестовой БД.
-
-    Таблицы создаются один раз перед запуском тестов
-    и удаляются после завершения всей сессии.
-    """
+    """Асинхронный engine для тестовой БД."""
     engine = create_async_engine(
         test_settings.database_url,
         echo=False,
@@ -71,10 +86,7 @@ async def test_engine(
 async def db_session(
     test_engine: AsyncEngine,
 ) -> AsyncGenerator[AsyncSession, None]:
-    """Предоставляет изолированную сессию БД для одного теста.
-
-    После выполнения теста все изменения откатываются.
-    """
+    """Изолированная сессия БД для одного теста."""
     session_factory = async_sessionmaker(
         bind=test_engine,
         class_=AsyncSession,
@@ -88,11 +100,26 @@ async def db_session(
             await session.rollback()
 
 
+# ---------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------
+
+
+def make_token(user_id: str) -> str:
+    """Создаёт JWT access-токен для пользователя."""
+    return create_access_token(user_id)
+
+
+# ---------------------------------------------------------------------
+# Factories
+# ---------------------------------------------------------------------
+
+
 @pytest_asyncio.fixture
 async def create_user(
     db_session: AsyncSession,
 ) -> Callable[..., Awaitable[User]]:
-    """Фабрика для создания пользователя напрямую в тестовой БД."""
+    """Фабрика создания пользователя напрямую в БД."""
 
     async def _create_user(
         *,
@@ -119,7 +146,7 @@ async def create_user(
 
 @pytest.fixture
 def user_create_data() -> Callable[..., UserCreate]:
-    """Фабрика валидных данных UserCreate для API-тестов."""
+    """Фабрика валидных данных UserCreate."""
 
     def _user_create(
         *,
@@ -138,11 +165,16 @@ def user_create_data() -> Callable[..., UserCreate]:
     return _user_create
 
 
+# ---------------------------------------------------------------------
+# HTTP client
+# ---------------------------------------------------------------------
+
+
 @pytest_asyncio.fixture
 async def async_client(
     test_engine: AsyncEngine,
 ) -> AsyncGenerator[AsyncClient, None]:
-    """HTTP-клиент FastAPI с подменённой зависимостью БД."""
+    """HTTP-клиент FastAPI с подменённой БД."""
     session_factory = async_sessionmaker(
         bind=test_engine,
         class_=AsyncSession,
@@ -166,3 +198,76 @@ async def async_client(
         yield client
 
     app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------
+# Users & tokens
+# ---------------------------------------------------------------------
+
+
+@pytest_asyncio.fixture
+async def regular_user(create_user: Callable) -> User:
+    """Пользователь с ролью USER."""
+    return await create_user(
+        email=USER_TEST_LOCAL,
+        phone=TEST_PHONE_3,
+        username='user',
+        role=UserRoles.USER,
+    )
+
+
+@pytest_asyncio.fixture
+async def admin_user(create_user: Callable) -> User:
+    """Пользователь с ролью ADMIN."""
+    return await create_user(
+        email=ADMIN_TEST_LOCAL,
+        phone=TEST_PHONE_1,
+        username='admin',
+        role=UserRoles.ADMIN,
+    )
+
+
+@pytest_asyncio.fixture
+async def manager_user(create_user: Callable) -> User:
+    """Пользователь с ролью MANAGER."""
+    return await create_user(
+        email=MANAGER_TEST_LOCAL,
+        phone=TEST_PHONE_2,
+        username='manager',
+        role=UserRoles.MANAGER,
+    )
+
+
+@pytest.fixture
+def user_token(regular_user: User) -> str:
+    """Токен пользователя USER."""
+    return make_token(str(regular_user.id))
+
+
+@pytest.fixture
+def admin_token(admin_user: User) -> str:
+    """Токен пользователя ADMIN."""
+    return make_token(str(admin_user.id))
+
+
+@pytest.fixture
+def manager_token(manager_user: User) -> str:
+    """Токен пользователя MANAGER."""
+    return make_token(str(manager_user.id))
+
+
+# ---------------------------------------------------------------------
+# Payloads
+# ---------------------------------------------------------------------
+
+
+@pytest.fixture
+def new_user_payload(user_create_data: Callable) -> UserCreate:
+    """Валидные и уникальные данные нового пользователя."""
+    suffix = str(uuid.uuid4().int)[:7]
+    return user_create_data(
+        email=f'new_user_{suffix}@example.ru',
+        phone=f'+7999{suffix}',
+        username=f'new_user_{suffix}',
+        password=DEFAULT_PASSWORD,
+    )

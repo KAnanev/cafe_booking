@@ -27,3 +27,6 @@ USERNAME_9 = 'conflictinguser'
 
 DEFAULT_PASSWORD = 'secret'
 DEFAULT_HASH = 'fake_hash'
+USER_TEST_LOCAL = 'user@test.local'
+MANAGER_TEST_LOCAL = 'manager@test.local'
+ADMIN_TEST_LOCAL = 'admin@test.local'
