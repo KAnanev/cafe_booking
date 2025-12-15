@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import get_password_hash
 from crud.user import user_crud
-from models.user import User, UserRole
+from models.user import User, UserRoles
 from schemas.user import UserCreate, UserCreateDB
 
 
@@ -16,7 +16,7 @@ class UserManager:
     async def _create_user(
         self,
         user: UserCreate,
-        role: UserRole = UserRole.USER,
+        role: UserRoles = UserRoles.USER,
         is_superuser: bool = False,
     ) -> User:
         """Приватный метод для создания пользователя.
@@ -61,19 +61,19 @@ class UserManager:
         user: UserCreate,
     ) -> User:
         """Создаёт пользователя с ролью MANAGER."""
-        return await self._create_user(user=user, role=UserRole.MANAGER)
+        return await self._create_user(user=user, role=UserRoles.MANAGER)
 
     async def create_admin(
         self,
         user: UserCreate,
     ) -> User:
         """Создаёт пользователя с ролью ADMIN."""
-        return await self._create_user(user=user, role=UserRole.ADMIN)
+        return await self._create_user(user=user, role=UserRoles.ADMIN)
 
     async def create_superuser(self, user: UserCreate) -> User:
         """Создаёт суперпользователя (роль ADMIN + is_superuser=True)."""
         return await self._create_user(
             user=user,
-            role=UserRole.ADMIN,
+            role=UserRoles.ADMIN,
             is_superuser=True,
         )
