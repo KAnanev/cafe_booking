@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Sequence, Type, TypeVar
+from typing import Generic, Optional, Sequence, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -63,15 +63,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def update(
         self,
         db_obj: ModelType,
-        obj_in: UpdateSchemaType,
+        obj_in: Union[UpdateSchemaType, dict],
         session: AsyncSession,
     ) -> ModelType:
-        """Обновляет существующий объект в базе данных."""
-        obj_data = obj_in.dict(exclude_unset=True)
+        """Обновляет существующий объект."""
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
 
-        for field in obj_data:
-            if field in obj_data:
-                setattr(db_obj, field, obj_data[field])
+        for field, value in update_data.items():
+            setattr(db_obj, field, value)
+
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)
