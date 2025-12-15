@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .cafe import Cafe
 
 
-class Roles(IntEnum):
+class UserRoles(IntEnum):
     """Роли пользователя."""
 
     USER = ROLE_USER
@@ -74,9 +74,9 @@ class User(TimestampMixin, ActiveMixin, Base):
         nullable=False,
     )
 
-    role: Mapped[Roles] = mapped_column(
+    role: Mapped[UserRoles] = mapped_column(
         Integer,
-        default=Roles.USER,
+        default=UserRoles.USER,
         nullable=False,
     )
 

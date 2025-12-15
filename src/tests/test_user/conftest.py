@@ -16,7 +16,7 @@ from sqlalchemy.pool import NullPool
 
 from core.config import Settings
 from core.db import Base
-from models.user import User, UserRole
+from models.user import User, UserRoles
 from schemas.user import UserCreate
 
 from .fixtures.test_data import DEFAULT_HASH, DEFAULT_PASSWORD
@@ -111,7 +111,7 @@ async def create_user(
         phone: str,
         username: str,
         hashed_password: str = DEFAULT_HASH,
-        role: int = UserRole.USER,
+        role: int = UserRoles.USER,
     ) -> User:
         user = User(
             email=email,

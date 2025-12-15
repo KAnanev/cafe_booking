@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import get_async_session
+from models.user import User, UserRoles
 from core.logging import set_user_context
 from models.user import Roles, User
 
@@ -66,7 +67,7 @@ async def get_current_user(
     return user
 
 
-def required_role(role: Roles) -> Callable[[User], Awaitable[User]]:
+def required_role(role: UserRoles) -> Callable[[User], Awaitable[User]]:
     """Возвращает зависимость, проверяющую минимальную роль пользователя."""
 
     async def check_role(user: User = Depends(get_current_user)) -> User:

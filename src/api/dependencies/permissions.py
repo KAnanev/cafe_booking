@@ -7,14 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.dependencies.users import get_current_user
 from core.db import get_async_session
 from crud.cafe import cafe_crud
-from models.user import Roles, User
+from models.user import User, UserRoles
 
 
 async def is_manager_or_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Разрешает доступ только менеджерам и админам."""
-    if current_user.role in (Roles.MANAGER, Roles.ADMIN):
+    if current_user.role in (UserRoles.MANAGER, UserRoles.ADMIN):
         return current_user
     raise HTTPException(
         status_code=HTTPStatus.FORBIDDEN,
@@ -28,10 +28,10 @@ async def can_manage_cafe(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Проверка права управления конкретным кафе."""
-    if current_user.role == Roles.ADMIN:
+    if current_user.role == UserRoles.ADMIN:
         return current_user
 
-    if current_user.role != Roles.MANAGER:
+    if current_user.role != UserRoles.MANAGER:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Недостаточно прав для управления этим кафе.',
