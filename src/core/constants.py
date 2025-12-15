@@ -37,6 +37,13 @@ MIN_PASSWORD_LENGTH = 3
 AUTH_TAG = 'Аутентификация'
 USERS_TAG = 'Пользователи'
 
+USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 255
+PASSWORD_HASH_MAX_LENGTH = 255
+TG_ID_MAX_LENGTH = 64
+
+CHECK_USER_EMAIL_OR_PHONE = 'ck_user_email_or_phone'
+
 __all__ = [
     'NAME_MAX_LENGTH',
     'GT_ZERO',
@@ -44,4 +51,15 @@ __all__ = [
     'MIN_PASSWORD_LENGTH',
     'AUTH_TAG',
     'USERS_TAG',
+    'USERNAME_MAX_LENGTH',
+    'EMAIL_MAX_LENGTH',
+    'PASSWORD_HASH_MAX_LENGTH',
+    'TG_ID_MAX_LENGTH',
+    'CHECK_USER_EMAIL_OR_PHONE',
+    'AUTH_TAG',
+    'USERS_TAG',
+    'PHONE_MAX_LENGTH',
+    'ROLE_USER',
+    'ROLE_MANAGER',
+    'ROLE_ADMIN',
 ]
