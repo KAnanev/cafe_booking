@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.exceptions import InvalidCredentialsHTTP, UserInactiveHTTP
 from core.db import get_async_session
 from core.security import create_access_token
 from managers.auth_manager import AuthManager
-from managers.exceptions import InvalidCredentials, UserInactive
+from managers.exceptions import InvalidCredentials
 from schemas.auth import AuthRequest, AuthResponse
 
 router = APIRouter()
@@ -28,15 +29,9 @@ async def login(
             password=data.password,
         )
     except InvalidCredentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Неправильный логин или пароль',
-        )
-    except UserInactive:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Пользователь отключен',
-        )
+        raise InvalidCredentialsHTTP()
+    except UserInactiveHTTP:
+        raise UserInactiveHTTP()
 
     access_token = create_access_token(user.id)
 
