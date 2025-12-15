@@ -44,6 +44,8 @@ TG_ID_MAX_LENGTH = 64
 
 CHECK_USER_EMAIL_OR_PHONE = 'ck_user_email_or_phone'
 
+ADMIN_ONLY_USER_UPDATE_FIELDS = {'is_active', 'role'}
+
 __all__ = [
     'NAME_MAX_LENGTH',
     'GT_ZERO',
@@ -62,4 +64,5 @@ __all__ = [
     'ROLE_USER',
     'ROLE_MANAGER',
     'ROLE_ADMIN',
+    'ADMIN_ONLY_USER_UPDATE_FIELDS',
 ]
