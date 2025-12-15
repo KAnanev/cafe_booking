@@ -11,8 +11,8 @@ from crud.base import CRUDBase
 from models.booking import Booking, BookingStatus
 from models.booking_table_slot import BookingTableSlot
 from models.cafe import Cafe
-from models.slot import TimeSlot
-from models.table import CafeTable
+from models.slots import Slot
+from models.table import Table
 from schemas.booking import BookingCreate, TablesSlots
 
 _BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
@@ -82,7 +82,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
     ) -> None:
         """Проверяет принадлежность столов и слотов кафе."""
         for pair in tables_slots:
-            table = await session.get(CafeTable, pair.table_id)
+            table = await session.get(Table, pair.table_id)
             if (
                 table is None
                 or not table.is_active
@@ -91,7 +91,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
                 msg = 'Стол не найден или не относится к кафе.'
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail=msg)
 
-            slot = await session.get(TimeSlot, pair.slot_id)
+            slot = await session.get(Slot, pair.slot_id)
             if slot is None or not slot.is_active or slot.cafe_id != cafe_id:
                 msg = 'Слот не найден или не относится к кафе.'
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail=msg)

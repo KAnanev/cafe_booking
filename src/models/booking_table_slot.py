@@ -30,10 +30,10 @@ class BookingTableSlot(Base):
     )
     slot_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('time_slots.id', ondelete='CASCADE'),
+        ForeignKey('slots.id', ondelete='CASCADE'),
         nullable=False,
     )
 
     booking = relationship('Booking', back_populates='tables_slots')
-    table = relationship('CafeTable', back_populates='booking_links')
-    slot = relationship('TimeSlot', back_populates='booking_links')
+    table = relationship('Table', back_populates='booking_links')
+    slot = relationship('Slot', back_populates='booking_links')

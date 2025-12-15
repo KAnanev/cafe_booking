@@ -10,7 +10,7 @@ from crud.booking import booking_crud
 from models.booking import Booking
 from schemas.booking import BookingCreate, BookingInfo
 
-router = APIRouter(prefix='/booking', tags=['Бронирования'])
+router = APIRouter()
 
 
 async def _get_booking_or_404(

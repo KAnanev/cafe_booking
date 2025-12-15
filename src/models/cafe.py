@@ -1,10 +1,23 @@
-from sqlalchemy import ARRAY, Column, String, Text
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from typing import TYPE_CHECKING
 
-from core.constant import NAME_MAX_LENGTH
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core.constant import (
+    CAFE_ADDRESS_MAX_LENGTH,
+    CAFE_NAME_MAX_LENGTH,
+    DESCRIPTION_MAX_LENGTH,
+    PHONE_MAX_LENGTH,
+    UUID_LENGTH,
+)
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from models.booking import Booking
+    from models.slots import Slot
+    from models.table import Table
+    from models.user import User
 
 
 class Cafe(TimestampMixin, ActiveMixin, Base):
@@ -12,25 +25,52 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
 
     __tablename__ = 'cafes'
 
-    name = Column(String(NAME_MAX_LENGTH), nullable=False)
-    address = Column(String(255), nullable=False)
-    phone = Column(String(32), nullable=False)
-    description = Column(Text, nullable=True)
-    photo_id = Column(UUID(as_uuid=True), nullable=False)
-    managers_id = Column(
-        ARRAY(UUID(as_uuid=True)),
+    name: Mapped[str] = mapped_column(
+        String(CAFE_NAME_MAX_LENGTH),
         nullable=False,
-        default=list,
+    )
+    address: Mapped[str] = mapped_column(
+        String(CAFE_ADDRESS_MAX_LENGTH),
+        nullable=False,
+    )
+    phone: Mapped[str] = mapped_column(
+        String(PHONE_MAX_LENGTH),
+        nullable=False,
+    )
+    description: Mapped[str] = mapped_column(
+        String(DESCRIPTION_MAX_LENGTH),
+        nullable=False,
+    )
+    photo_id: Mapped[str | None] = mapped_column(
+        String(UUID_LENGTH),
+        nullable=True,
     )
 
-    tables = relationship(
-        'CafeTable',
+    managers: Mapped[list['User']] = relationship(
+        'User',
+        secondary='cafe_managers',
+        back_populates='cafes',
+        lazy='selectin',
+    )
+
+    tables: Mapped[list['Table']] = relationship(
+        'Table',
         back_populates='cafe',
         cascade='all, delete-orphan',
+        lazy='selectin',
     )
-    slots = relationship(
-        'TimeSlot',
+    slots: Mapped[list['Slot']] = relationship(
+        'Slot',
         back_populates='cafe',
         cascade='all, delete-orphan',
+        lazy='selectin',
     )
-    bookings = relationship('Booking', back_populates='cafe')
+    bookings: Mapped[list['Booking']] = relationship(
+        'Booking',
+        back_populates='cafe',
+        cascade='all, delete-orphan',
+        lazy='selectin',
+    )
+
+    def __str__(self) -> str:
+        return f'{self.name} - {self.address}'

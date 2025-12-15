@@ -1,23 +1,23 @@
 from models.booking import Booking
 from schemas.booking import BookingInfo, TablesSlotsInfo
-from schemas.cafe import CafeShortInfo
-from schemas.slot import TimeSlotShortInfo
-from schemas.table import TableShortInfo
+from schemas.cafe import CafeShort
+from schemas.slot import TimeSlotShort
+from schemas.table import TableShort
 
 
 def build_booking_info(booking: Booking) -> BookingInfo:
     """Приводит Booking к BookingInfo с краткой информацией."""
-    cafe_short = CafeShortInfo.model_validate(
+    cafe_short = CafeShort.model_validate(
         booking.cafe,
         from_attributes=True,
     )
     tables_slots = []
     for link in booking.tables_slots:
-        table_short = TableShortInfo.model_validate(
+        table_short = TableShort.model_validate(
             link.table,
             from_attributes=True,
         )
-        slot_short = TimeSlotShortInfo.model_validate(
+        slot_short = TimeSlotShort.model_validate(
             link.slot,
             from_attributes=True,
         )

@@ -12,9 +12,9 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
-from schemas.cafe import CafeShortInfo
-from schemas.slot import TimeSlotShortInfo
-from schemas.table import TableShortInfo
+from schemas.cafe import CafeShort
+from schemas.slot import TimeSlotShort
+from schemas.table import TableShort
 from schemas.user import UserShortInfo
 
 
@@ -28,8 +28,8 @@ class TablesSlots(BaseSchema):
 class TablesSlotsInfo(UUIDIDSchema, BaseSchema):
     """Связка стол/слот для ответа."""
 
-    table: TableShortInfo
-    slot: TimeSlotShortInfo
+    table: TableShort
+    slot: TimeSlotShort
 
 
 class BookingCreate(BaseSchema):
@@ -68,7 +68,7 @@ class BookingInfo(UUIDIDSchema, TimestampSchema, ActiveSchema, BaseSchema):
     """Ответ по бронированию."""
 
     user: UserShortInfo | None = None
-    cafe: CafeShortInfo
+    cafe: CafeShort
     tables_slots: list[TablesSlotsInfo]
     guest_number: int
     note: str | None = None

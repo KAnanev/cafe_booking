@@ -1,5 +1,4 @@
-from typing import Generic, Optional, Type, TypeVar
-from uuid import UUID
+from typing import Generic, Optional, Sequence, Type, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -22,16 +21,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_by_id(
         self,
-        obj_id: UUID,
+        obj_id: int,
         session: AsyncSession,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
         db_obj = await session.execute(
-            select(self.model).where(obj_id == self.model.id),
+            select(self.model).where(self.model.id == obj_id),
         )
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession) -> list[ModelType]:
+    async def get_multi(self, session: AsyncSession) -> Sequence[ModelType]:
         """Получает список всех объектов."""
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
@@ -83,7 +82,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         session: AsyncSession,
     ) -> ModelType:
-        """Отключает объект."""
+        """Искусственное удаление."""
         if hasattr(db_obj, 'is_active'):
             setattr(db_obj, 'is_active', False)
             session.add(db_obj)
@@ -92,5 +91,5 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             return db_obj
 
         raise AttributeError(
-            f'Модель {db_obj.__class__.__name__} не поддерживает отключение.',
+            f'Объект {db_obj.__class__.__name__} не поддерживает удаление.',
         )
