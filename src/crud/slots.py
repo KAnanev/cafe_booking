@@ -80,7 +80,9 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
                 'Слот с таким временем уже существует для этого кафе',
             )
         return await super().update(
-            db_obj=db_obj, obj_in=obj_in, session=session,
+            db_obj=db_obj,
+            obj_in=obj_in,
+            session=session,
         )
 
 
