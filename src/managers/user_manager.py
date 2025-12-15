@@ -1,9 +1,17 @@
+from typing import Union
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import get_password_hash
 from crud.user import user_crud
+from managers.exceptions import PermissionDenied
 from models.user import User, UserRoles
-from schemas.user import UserCreate, UserCreateDB
+from schemas.user import (
+    UserAdminUpdate,
+    UserCreate,
+    UserCreateDB,
+    UserMeUpdate,
+)
 
 
 class UserManager:
@@ -77,3 +85,41 @@ class UserManager:
             role=UserRoles.ADMIN,
             is_superuser=True,
         )
+
+    async def update_user(
+        self,
+        actor: User,
+        target: User,
+        data: Union[UserMeUpdate, UserAdminUpdate],
+    ) -> User:
+        """Обновляет поля пользователя."""
+        self._check_update_permissions(actor, target, data)
+
+        return await user_crud.update(
+            db_obj=target,
+            obj_in=data,
+            session=self.session,
+        )
+
+    def _check_update_permissions(
+        self,
+        actor: User,
+        target: User,
+        data: Union[UserMeUpdate, UserAdminUpdate],
+    ) -> None:
+        """Проверяет права на изменение полй."""
+        if actor.role != UserRoles.ADMIN and actor.id != target.id:
+            raise PermissionDenied('Нельзя изменять других пользователей')
+
+        restricted_fields = {
+            'role',
+            'is_active',
+            'is_superuser',
+        }
+
+        if actor.role != UserRoles.ADMIN:
+            for field in restricted_fields:
+                if getattr(data, field, None) is not None:
+                    raise PermissionDenied(
+                        f"Поле '{field}' доступно только администратору",
+                    )

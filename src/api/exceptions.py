@@ -45,12 +45,12 @@ class UserNotFoundHTTP(HTTPException):
         )
 
 
-class ForbiddenHTTP(HTTPException):
-    """Кастомное исключение Forbidden."""
+class PermissionDeniedHTTP(HTTPException):
+    """403 Forbidden — недостаточно прав для выполнения операции."""
 
-    def __init__(self) -> None:
+    def __init__(self, detail: str = 'Недостаточно прав') -> None:
         """Инициализатор класса."""
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='Недостаточно прав для выполнения операции',
+            detail=detail,
         )

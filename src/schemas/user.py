@@ -96,10 +96,7 @@ class UserCreateDB(UserBase):
 
 
 class UserMeUpdate(BaseSchema):
-    """Схема для частичного обновления данных пользователя.
-
-    Позволяет изменять контактную информацию.
-    """
+    """Схема для обновления собственных данных пользователя."""
 
     username: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -109,10 +106,7 @@ class UserMeUpdate(BaseSchema):
 
 
 class UserAdminUpdate(UserMeUpdate):
-    """Схема для частичного обновления данных пользователя админом.
-
-    Позволяет изменять контактную информацию роли и статус активности.
-    """
+    """Схема для обновления пользователя администратором."""
 
     role: Optional[UserRoles] = None
     is_active: Optional[bool] = None

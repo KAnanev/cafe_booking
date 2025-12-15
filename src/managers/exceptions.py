@@ -4,3 +4,7 @@ class InvalidCredentials(Exception):
 
 class UserInactive(Exception):
     """Исключение, когда пользователь неактивен."""
+
+
+class PermissionDenied(Exception):
+    """Исключение, когда в доступе отказано."""
