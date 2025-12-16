@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.base import CRUDBase
@@ -13,35 +13,48 @@ class UserCRUD(CRUDBase[User, UserCreate, UserAdminUpdate]):
 
     async def get_by_email(
         self,
+        *,
         email: str,
         session: AsyncSession,
     ) -> Optional[User]:
-        """Получает пользователя по адресу электронной почты."""
-        result = await session.execute(select(User).where(User.email == email))
+        """Возвращает пользователя по email."""
+        stmt = select(User).where(User.email == email)
+        result = await session.execute(stmt)
         return result.scalars().first()
 
-    async def get_by_phone(
+    async def exists_by_email(
+        self,
+        email: str,
+        session: AsyncSession,
+    ) -> bool:
+        """Проверяет существование пользователя с указанным email."""
+        stmt = select(exists().where(User.email == email))
+        return await session.scalar(stmt)
+
+    async def exists_by_phone(
         self,
         phone: str,
         session: AsyncSession,
-    ) -> Optional[User]:
-        """Получает пользователя по номеру телефона."""
-        result = await session.execute(select(User).where(User.phone == phone))
-        return result.scalars().first()
+    ) -> bool:
+        """Проверяет существование пользователя с указанным телефоном."""
+        stmt = select(exists().where(User.phone == phone))
+        return await session.scalar(stmt)
 
     async def get_by_login(
         self,
         login: str,
         session: AsyncSession,
     ) -> Optional[User]:
-        """Получает пользователя по email или phone."""
-        user_in = await self.get_by_email(login, session)
-        if not user_in:
-            user_in = await self.get_by_phone(login, session)
+        """Получает пользователя по email или номеру телефона."""
+        stmt = select(User).where(
+            or_(
+                User.email == login,
+                User.phone == login,
+            ),
+        )
 
-        if not user_in:
-            return None
-        return user_in
+        result = await session.execute(stmt)
+        return result.scalars().first()
 
 
 user_crud = UserCRUD(User)

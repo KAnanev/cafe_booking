@@ -50,13 +50,19 @@ class UserManager:
     async def _check_unique_fields(self, user: UserCreate) -> None:
         """Проверяет уникальность email и телефона пользователя."""
         if user.email:
-            if await user_crud.get_by_email(user.email, session=self.session):
+            if await user_crud.exists_by_email(
+                email=user.email,
+                session=self.session,
+            ):
                 raise UserAlreadyExists(
                     f"Пользователь с email '{user.email}' уже существует",
                 )
 
         if user.phone:
-            if await user_crud.get_by_phone(user.phone, session=self.session):
+            if await user_crud.exists_by_phone(
+                phone=user.phone,
+                session=self.session,
+            ):
                 raise UserAlreadyExists(
                     f"Пользователь с телефоном '{user.phone}' уже существует",
                 )

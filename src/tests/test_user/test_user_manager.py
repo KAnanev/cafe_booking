@@ -5,10 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from managers.exceptions import UserAlreadyExists
 from managers.user_manager import UserManager
-
-from .fixtures.test_data import (
-    DEFAULT_HASH,
-)
+from models.user import UserRole
 
 
 class TestUserManager:
@@ -23,25 +20,25 @@ class TestUserManager:
         """Тестирует успешное создание пользователя."""
         user_in = user_create_data(
             username='user',
+            hashed_password='plain_password',
         )
-        manager = UserManager(session=db_session)
 
+        manager = UserManager(session=db_session)
         result = await manager.create_user(user_in)
 
+        assert result.username == user_in.username
         assert result.email == user_in.email
         assert result.phone == user_in.phone
-        assert result.username == user_in.username
+        assert result.is_active is True
+        assert result.role == UserRole.USER
+        assert result.is_superuser is False
 
         from core.security import verify_password
-        from crud.user import user_crud
 
-        db_user = await user_crud.get_by_email(
-            user_in.email,
-            session=db_session,
+        assert verify_password(
+            'plain_password',
+            result.hashed_password,
         )
-        assert db_user is not None
-        assert db_user.email == user_in.email
-        assert verify_password(DEFAULT_HASH, db_user.hashed_password)
 
     @pytest.mark.asyncio
     async def test_create_user_email_already_exists(
