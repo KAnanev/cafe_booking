@@ -90,5 +90,5 @@ class User(TimestampMixin, ActiveMixin, Base):
         'Cafe',
         secondary='cafe_managers',
         back_populates='managers',
-        lazy='selectin',
+        lazy='noload',  # Чтобы не грузилось для системных операций init_db
     )
