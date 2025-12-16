@@ -20,6 +20,15 @@ class Settings(BaseSettings):
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
 
+    # Логирование
+    log_level: str = "INFO"
+    log_file_path: str = "logs/app.log"
+    log_file_max_size: str = "10 MB"
+    log_file_rotation_count: int = 5
+    log_file_compression: Optional[str] = None
+    log_console_enabled: bool = False
+    log_file_enabled: bool = True
+
     @property
     def database_url(self) -> str:
         """Возвращает URL для асинхронной базы данных (postgresql+asyncpg)."""
