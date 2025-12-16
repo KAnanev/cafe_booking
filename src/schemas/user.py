@@ -2,6 +2,7 @@ import re
 from typing import Optional
 
 from pydantic import (
+    ConfigDict,
     EmailStr,
     field_validator,
     model_validator,
@@ -101,6 +102,8 @@ class UserMeUpdate(BaseSchema):
     phone: Optional[str] = None
     tg_id: Optional[str] = None
     password: Optional[str] = None
+
+    model_config = ConfigDict(extra='forbid')
 
 
 class UserAdminUpdate(UserMeUpdate):

@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.permissions import allow_anonymous_or_roles
-from api.dependencies.users import require_role
+from api.dependencies.users import get_current_user, require_role
 from api.exceptions import UserNotFoundHTTP
 from core.db import get_async_session
 from crud.user import user_crud
 from managers.user_manager import UserManager
 from models.user import User, UserRoles
-from schemas.user import UserAdminUpdate, UserCreate, UserDB
+from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate
 
 router = APIRouter()
 
@@ -62,6 +62,42 @@ async def get_all_users(
 
 
 @router.get(
+    '/me',
+    response_model=UserDB,
+    status_code=status.HTTP_200_OK,
+    summary='Получение информации о текущем пользователе',
+)
+async def get_me(
+    user: User = Depends(get_current_user),
+) -> UserDB:
+    """Возвращает информацию о текущем пользователе.
+
+    Только для авторизированных пользователей.
+    """
+    return UserDB.model_validate(user, from_attributes=True)
+
+
+@router.patch(
+    '/me',
+    response_model=UserDB,
+    status_code=status.HTTP_200_OK,
+    summary='Обновление информации о текущем пользователе',
+)
+async def update_me(
+    data: UserMeUpdate,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> UserDB:
+    """Возвращает обновленную информацию о пользователе.
+
+    Только для авторизированных пользователей.
+    """
+    manager = UserManager(session=session)
+    updated = await manager.update_user(actor=user, target=user, data=data)
+    return UserDB.model_validate(updated, from_attributes=True)
+
+
+@router.get(
     '/{user_id}',
     response_model=UserDB,
     status_code=status.HTTP_200_OK,
@@ -74,7 +110,7 @@ async def get_user(
 ) -> UserDB:
     """Возвращает информацию о пользователе по его ID.
 
-    Только для администраторов или менеджеров
+    Только для администраторов или менеджеров.
     """
     user = await user_crud.get_by_id(session=session, obj_id=user_id)
 
@@ -92,13 +128,13 @@ async def get_user(
 )
 async def update_user(
     user_id: UUID,
-    user_in: UserAdminUpdate,
+    data: UserAdminUpdate,
     actor: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе по его ID.
 
-    Только для администраторов или менеджеров
+    Только для администраторов или менеджеров.
     """
     target = await user_crud.get_by_id(session=session, obj_id=user_id)
     if not target:
@@ -108,6 +144,6 @@ async def update_user(
     updated = await manager.update_user(
         actor=actor,
         target=target,
-        data=user_in,
+        data=data,
     )
     return UserDB.model_validate(updated, from_attributes=True)
