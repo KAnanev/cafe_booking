@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   migrate:
-    image: backend
+    image: cafe-backend:local
     env_file:
       - .env
     command: alembic upgrade head
@@ -38,6 +38,7 @@ services:
 
   backend:
     build: ../src
+    image: cafe-backend:local
     env_file:
       - .env
     depends_on:
