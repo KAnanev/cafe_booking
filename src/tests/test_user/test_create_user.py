@@ -54,7 +54,7 @@ async def test_register_user_duplicate_email(
 
     response = await async_client.post(USERS_ROUTE, json=PAYLOAD)
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert 'уже существует' in response.json()['detail']
 
 

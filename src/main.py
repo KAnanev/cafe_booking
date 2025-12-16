@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from api.exception_handlers import register_exception_handlers
 from api.routers import main_router
 from core.config import settings
 from core.logging import LoggingMiddleware, setup_logging
@@ -21,6 +22,7 @@ app = FastAPI(
     openapi_tags=settings.openapi_tags,
     lifespan=lifespan,
 )
+register_exception_handlers(app)
 
 app.add_middleware(LoggingMiddleware)
 

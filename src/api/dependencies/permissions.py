@@ -6,12 +6,12 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.users import get_current_user, oauth2_scheme
-from api.exceptions import PermissionDeniedHTTP
 from core.db import get_async_session
 from core.exceptions import InvalidToken
 from core.security import decode_access_token
 from crud.cafe import cafe_crud
 from crud.user import user_crud
+from managers.exceptions import PermissionDenied
 from models.user import User, UserRoles
 
 
@@ -56,10 +56,10 @@ def allow_anonymous_or_roles(
         user = await user_crud.get_by_id(user_id, session)
 
         if not user or not user.is_active:
-            raise PermissionDeniedHTTP()
+            raise PermissionDenied()
 
         if user.role not in allowed_roles:
-            raise PermissionDeniedHTTP(
+            raise PermissionDenied(
                 'Авторизованным пользователям без прав доступ запрещен.',
             )
 

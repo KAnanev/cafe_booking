@@ -5,15 +5,12 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.exceptions import (
-    InvalidCredentialsHTTP,
-    PermissionDeniedHTTP,
-    UserInactiveHTTP,
     UserNotFoundHTTP,
 )
 from core.db import get_async_session
-from core.exceptions import InvalidToken
 from core.security import decode_access_token
 from crud.user import user_crud
+from managers.exceptions import PermissionDenied, UserInactive
 from models.user import User, UserRoles
 from core.logging import set_user_context
 
@@ -33,16 +30,14 @@ async def get_current_user(
     декодирует его, загружает пользователя из базы данных
     и проверяет его активность.
     """
-    try:
-        user_id = decode_access_token(token)
-    except InvalidToken:
-        raise InvalidCredentialsHTTP()
+    user_id = decode_access_token(token)
 
     user = await user_crud.get_by_id(obj_id=user_id, session=session)
     if not user:
         raise UserNotFoundHTTP()
 
     if not user.is_active:
+        raise UserInactive('Пользователь неактивен')
         raise UserInactiveHTTP()
     # Устанавливаем контекст пользователя для логирования
     set_user_context(
@@ -68,7 +63,7 @@ def require_role(
     ) -> User:
         """Проверяет роль текущего пользователя."""
         if current_user.role not in allowed_roles:
-            raise PermissionDeniedHTTP()
+            raise PermissionDenied()
         return current_user
 
     return role_checker
