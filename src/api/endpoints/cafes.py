@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.dependencies.permissions import can_manage_cafe, is_manager_or_admin
 from core.db import get_async_session
 from crud.cafe import cafe_crud
-from models.user import User, UserRoles
+from models.user import User, UserRole
 from schemas.cafe import CafeCreate, CafeRead, CafeUpdate
 
 router = APIRouter()
@@ -47,7 +47,7 @@ async def create_cafe(
         commit=False,
     )
     await session.flush()
-    if current_user.role == UserRoles.MANAGER:
+    if current_user.role == UserRole.MANAGER:
         cafe.managers.append(current_user)
     await session.commit()
     await session.refresh(cafe)

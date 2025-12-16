@@ -4,7 +4,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from models.user import User, UserRoles
+from models.user import User, UserRole
 
 from .fixtures.test_data import USERS_ROUTE
 
@@ -18,7 +18,7 @@ async def test_admin_can_update_any_user(
     """ADMIN может обновлять любого пользователя."""
     payload = {
         'username': 'updated_by_admin',
-        'role': UserRoles.MANAGER,
+        'role': UserRole.MANAGER,
         'is_active': False,
     }
 
@@ -32,7 +32,7 @@ async def test_admin_can_update_any_user(
     data = response.json()
 
     assert data['username'] == 'updated_by_admin'
-    assert data['role'] == UserRoles.MANAGER
+    assert data['role'] == UserRole.MANAGER
     assert data['is_active'] is False
 
 
@@ -70,7 +70,7 @@ async def test_manager_cannot_update_role(
     """MANAGER не может менять role."""
     response = await async_client.patch(
         f'{USERS_ROUTE}{regular_user.id}',
-        json={'role': UserRoles.ADMIN},
+        json={'role': UserRole.ADMIN},
         headers={'Authorization': f'Bearer {manager_token}'},
     )
 

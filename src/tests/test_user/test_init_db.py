@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.init_db import create_first_superuser
 from crud.user import user_crud
-from models.user import User, UserRoles
+from models.user import User, UserRole
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_create_first_superuser_creates_user(
 
     assert user is not None
     assert user.email == 'admin@test.com'
-    assert user.role == UserRoles.ADMIN
+    assert user.role == UserRole.ADMIN
     assert user.is_active is True
     assert user.is_superuser is True
 
@@ -117,7 +117,7 @@ async def test_create_first_superuser_does_not_override_existing_user(
         email=email,
         phone='+79991234567',
         hashed_password='fake_hash',
-        role=UserRoles.USER,
+        role=UserRole.USER,
         is_active=True,
         is_superuser=False,
     )
@@ -133,5 +133,5 @@ async def test_create_first_superuser_does_not_override_existing_user(
     )
 
     assert user.id == existing_user.id
-    assert user.role == UserRoles.USER
+    assert user.role == UserRole.USER
     assert user.is_superuser is False

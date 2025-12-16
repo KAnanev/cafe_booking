@@ -9,7 +9,7 @@ from api.exceptions import UserNotFoundHTTP
 from core.db import get_async_session
 from crud.user import user_crud
 from managers.user_manager import UserManager
-from models.user import User, UserRoles
+from models.user import User, UserRole
 from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate
 
 router = APIRouter()
@@ -26,8 +26,8 @@ async def create_user(
     session: AsyncSession = Depends(get_async_session),
     _: User | None = Depends(
         allow_anonymous_or_roles(
-            UserRoles.ADMIN,
-            UserRoles.MANAGER,
+            UserRole.ADMIN,
+            UserRole.MANAGER,
         ),
     ),
 ) -> UserDB:
@@ -52,7 +52,7 @@ async def create_user(
 )
 async def get_all_users(
     session: AsyncSession = Depends(get_async_session),
-    _: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
+    _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
 ) -> list[UserDB]:
     """Возвращает информацию о всех пользователях.
 
@@ -106,7 +106,7 @@ async def update_me(
 async def get_user(
     user_id: UUID,
     session: AsyncSession = Depends(get_async_session),
-    _: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
+    _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
 ) -> UserDB:
     """Возвращает информацию о пользователе по его ID.
 
@@ -129,7 +129,7 @@ async def get_user(
 async def update_user(
     user_id: UUID,
     data: UserAdminUpdate,
-    actor: User = Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER)),
+    actor: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе по его ID.

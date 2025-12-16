@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 class Table(TimestampMixin, ActiveMixin, Base):
     """Модель стола в кафе."""
 
-    __tablename__ = 'tables'
     __table_args__ = (
         CheckConstraint(
             f'seats_number >= {TABLE_MIN_SEATS_NUMBER}',

@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from models.user import UserRoles
+from models.user import UserRole
 from schemas.user import UserCreate
 
 from .fixtures.test_data import USERS_ROUTE
@@ -24,7 +24,7 @@ async def test_create_user(
 
     assert data['username'] == new_user_payload.username
     assert data['email'] == new_user_payload.email
-    assert data['role'] == UserRoles.USER
+    assert data['role'] == UserRole.USER
     assert data['is_active'] is True
 
 

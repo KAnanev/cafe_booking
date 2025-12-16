@@ -12,7 +12,7 @@ from core.logging import set_user_context
 from core.security import decode_access_token
 from crud.user import user_crud
 from managers.exceptions import PermissionDenied, UserInactive
-from models.user import User, UserRoles
+from models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl='/auth/login',
@@ -82,7 +82,7 @@ async def get_current_active_user(
 
 
 def require_role(
-    *allowed_roles: UserRoles,
+    *allowed_roles: UserRole,
 ) -> Callable[..., Coroutine[Any, Any, User]]:
     """Dependency-фабрика для проверки роли пользователя.
 

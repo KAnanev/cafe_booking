@@ -12,11 +12,11 @@ from core.security import decode_access_token
 from crud.cafe import cafe_crud
 from crud.user import user_crud
 from managers.exceptions import PermissionDenied
-from models.user import User, UserRoles
+from models.user import User, UserRole
 
 
 def allow_anonymous_or_roles(
-    *allowed_roles: UserRoles,
+    *allowed_roles: UserRole,
 ) -> Callable[[User], User]:
     """Фабрика зависимостей доступа для эндпоинтов FastAPI.
 
@@ -72,7 +72,7 @@ async def is_manager_or_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Разрешает доступ только менеджерам и админам."""
-    if current_user.role in (UserRoles.MANAGER, UserRoles.ADMIN):
+    if current_user.role in (UserRole.MANAGER, UserRole.ADMIN):
         return current_user
     raise HTTPException(
         status_code=HTTPStatus.FORBIDDEN,
@@ -86,10 +86,10 @@ async def can_manage_cafe(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Проверка права управления конкретным кафе."""
-    if current_user.role == UserRoles.ADMIN:
+    if current_user.role == UserRole.ADMIN:
         return current_user
 
-    if current_user.role != UserRoles.MANAGER:
+    if current_user.role != UserRole.MANAGER:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
             detail='Недостаточно прав для управления этим кафе.',

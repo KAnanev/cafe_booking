@@ -6,7 +6,7 @@ from core.constants import ADMIN_ONLY_USER_UPDATE_FIELDS
 from core.security import get_password_hash
 from crud.user import user_crud
 from managers.exceptions import PermissionDenied, UserAlreadyExists
-from models.user import User, UserRoles
+from models.user import User, UserRole
 from schemas.user import (
     UserAdminUpdate,
     UserCreate,
@@ -25,7 +25,7 @@ class UserManager:
     async def _create_user(
         self,
         user: UserCreate,
-        role: UserRoles = UserRoles.USER,
+        role: UserRole = UserRole.USER,
         is_superuser: bool = False,
     ) -> User:
         """Приватный метод для создания пользователя.
@@ -70,20 +70,20 @@ class UserManager:
         user: UserCreate,
     ) -> User:
         """Создаёт пользователя с ролью MANAGER."""
-        return await self._create_user(user=user, role=UserRoles.MANAGER)
+        return await self._create_user(user=user, role=UserRole.MANAGER)
 
     async def create_admin(
         self,
         user: UserCreate,
     ) -> User:
         """Создаёт пользователя с ролью ADMIN."""
-        return await self._create_user(user=user, role=UserRoles.ADMIN)
+        return await self._create_user(user=user, role=UserRole.ADMIN)
 
     async def create_superuser(self, user: UserCreate) -> User:
         """Создаёт суперпользователя (роль ADMIN + is_superuser=True)."""
         return await self._create_user(
             user=user,
-            role=UserRoles.ADMIN,
+            role=UserRole.ADMIN,
             is_superuser=True,
         )
 
@@ -109,14 +109,14 @@ class UserManager:
         data: Union[UserMeUpdate, UserAdminUpdate],
     ) -> None:
         """Проверяет права на изменение полй."""
-        if actor.role == UserRoles.USER and actor.id != target.id:
+        if actor.role == UserRole.USER and actor.id != target.id:
             raise PermissionDenied('Нельзя изменять других пользователей')
 
         admin_only_fields = ADMIN_ONLY_USER_UPDATE_FIELDS
 
         for field in admin_only_fields:
             if getattr(data, field, None) is not None:
-                if actor.role != UserRoles.ADMIN:
+                if actor.role != UserRole.ADMIN:
                     raise PermissionDenied(
                         f"Поле '{field}' доступно только администратору",
                     )

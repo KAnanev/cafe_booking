@@ -8,7 +8,7 @@ from pydantic import (
     model_validator,
 )
 
-from models.user import UserRoles
+from models.user import UserRole
 from schemas.base import (
     ActiveSchema,
     BaseSchema,
@@ -29,7 +29,7 @@ class UserBase(BaseSchema):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     tg_id: Optional[str] = None
-    role: Optional[UserRoles] = None
+    role: Optional[UserRole] = None
 
     @field_validator('phone')
     @classmethod
@@ -109,5 +109,5 @@ class UserMeUpdate(BaseSchema):
 class UserAdminUpdate(UserMeUpdate):
     """Схема для обновления пользователя администратором."""
 
-    role: Optional[UserRoles] = None
+    role: Optional[UserRole] = None
     is_active: Optional[bool] = None

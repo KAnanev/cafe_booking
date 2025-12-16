@@ -1,7 +1,7 @@
-from enum import IntEnum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, CheckConstraint, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .cafe import Cafe
 
 
-class UserRoles(IntEnum):
+class UserRole(StrEnum):
     """Роли пользователя."""
 
     USER = ROLE_USER
@@ -74,9 +74,9 @@ class User(TimestampMixin, ActiveMixin, Base):
         nullable=False,
     )
 
-    role: Mapped[UserRoles] = mapped_column(
-        Integer,
-        default=UserRoles.USER,
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name='user_role'),
+        default=UserRole.USER,
         nullable=False,
     )
 

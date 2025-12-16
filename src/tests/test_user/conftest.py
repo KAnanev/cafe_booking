@@ -19,7 +19,7 @@ from core.config import Settings
 from core.db import Base, get_async_session
 from core.security import create_access_token
 from main import app
-from models.user import User, UserRoles
+from models.user import User, UserRole
 from schemas.user import UserCreate
 
 from .fixtures.test_data import (
@@ -119,7 +119,7 @@ async def create_user(
         *,
         username: str,
         hashed_password: str = DEFAULT_HASH,
-        role: UserRoles = UserRoles.USER,
+        role: UserRole = UserRole.USER,
     ) -> User:
         suffix = str(uuid.uuid4().int)[:7]
         user = User(
@@ -211,7 +211,7 @@ async def regular_user(create_user: Callable) -> User:
     """Пользователь с ролью USER."""
     return await create_user(
         username='user',
-        role=UserRoles.USER,
+        role=UserRole.USER,
     )
 
 
@@ -220,7 +220,7 @@ async def admin_user(create_user: Callable) -> User:
     """Пользователь с ролью ADMIN."""
     return await create_user(
         username='admin',
-        role=UserRoles.ADMIN,
+        role=UserRole.ADMIN,
     )
 
 
@@ -229,7 +229,7 @@ async def manager_user(create_user: Callable) -> User:
     """Пользователь с ролью MANAGER."""
     return await create_user(
         username='manager',
-        role=UserRoles.MANAGER,
+        role=UserRole.MANAGER,
     )
 
 

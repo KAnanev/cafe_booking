@@ -1,7 +1,8 @@
 # Роли пользователя
-ROLE_USER = 0
-ROLE_MANAGER = 1
-ROLE_ADMIN = 2
+ROLE_USER = 'User'
+ROLE_MANAGER = 'Manager'
+ROLE_ADMIN = 'Admin'
+
 
 # Телефон
 PHONE_MAX_LENGTH = 20

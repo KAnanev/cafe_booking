@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from crud.user import user_crud
 from managers.user_manager import UserManager
-from models.user import UserRoles
+from models.user import UserRole
 from schemas.user import UserCreate
 
 
@@ -24,7 +24,7 @@ async def create_first_superuser(session: AsyncSession) -> None:
         username=settings.first_superuser_email,
         email=settings.first_superuser_email,
         password=settings.first_superuser_password,
-        role=UserRoles.ADMIN,
+        role=UserRole.ADMIN,
     )
 
     manager = UserManager(session)
