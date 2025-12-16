@@ -45,6 +45,13 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency для получения AsyncSession."""
+    """Dependency для получения AsyncSession с управлением транзакцией."""
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
