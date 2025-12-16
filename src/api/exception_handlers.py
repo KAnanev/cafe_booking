@@ -55,7 +55,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(InvalidToken)
-    async def user_inactive_handler(
+    async def invalid_token_handler(
         request: Request,
         exc: InvalidToken,
     ) -> JSONResponse:

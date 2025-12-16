@@ -1,14 +1,18 @@
-class InvalidCredentials(Exception):
+class UserManagerExceptions(Exception):
+    """Доменное исключение."""
+
+
+class InvalidCredentials(UserManagerExceptions):
     """Исключение, когда пользователь не найден."""
 
 
-class UserInactive(Exception):
+class UserInactive(UserManagerExceptions):
     """Исключение, когда пользователь неактивен."""
 
 
-class PermissionDenied(Exception):
+class PermissionDenied(UserManagerExceptions):
     """Исключение, когда в доступе отказано."""
 
 
-class UserAlreadyExists(Exception):
+class UserAlreadyExists(UserManagerExceptions):
     """Исключение, когда пользователь уже существует."""
