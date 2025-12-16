@@ -32,25 +32,7 @@ class UserManager:
 
         Проверяются поля email и телефона.
         """
-        if user.email is not None:
-            existing_by_email = await user_crud.get_by_email(
-                user.email,
-                session=self.session,
-            )
-            if existing_by_email:
-                raise UserAlreadyExists(
-                    f'Пользователь {user.email} уже существует',
-                )
-
-        if user.phone is not None:
-            existing_by_phone = await user_crud.get_by_phone(
-                user.phone,
-                session=self.session,
-            )
-            if existing_by_phone:
-                raise UserAlreadyExists(
-                    f'Пользователь {user.email} уже существует',
-                )
+        await self._check_unique_fields(user)
 
         hashed_password = get_password_hash(user.password)
         user_internal = UserCreateDB(
@@ -64,6 +46,20 @@ class UserManager:
             obj_in=user_internal,
             session=self.session,
         )
+
+    async def _check_unique_fields(self, user: UserCreate) -> None:
+        """Проверяет уникальность email и телефона пользователя."""
+        if user.email:
+            if await user_crud.get_by_email(user.email, session=self.session):
+                raise UserAlreadyExists(
+                    f"Пользователь с email '{user.email}' уже существует",
+                )
+
+        if user.phone:
+            if await user_crud.get_by_phone(user.phone, session=self.session):
+                raise UserAlreadyExists(
+                    f"Пользователь с телефоном '{user.phone}' уже существует",
+                )
 
     async def create_user(self, user: UserCreate) -> User:
         """Создаёт обычного пользователя (роль USER)."""
