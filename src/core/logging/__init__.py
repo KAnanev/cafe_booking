@@ -21,17 +21,17 @@ def setup_logging() -> None:
     console_handler_id = setup_console_handler()
     if file_handler_id is None and console_handler_id is None:
         loguru_logger.add(
-            sink="stderr",
+            sink='stderr',
             level=settings.log_level,
-            format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}",
+            format='{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}',
             enqueue=True,
         )
         loguru_logger.warning(
-            "Все обработчики логов отключены. "
-            "Используется минимальный обработчик в stderr.",
+            'Все обработчики логов отключены. '
+            'Используется минимальный обработчик в stderr.',
         )
     logger.info(
-        "Модуль логирования инициализирован",
+        'Модуль логирования инициализирован',
         log_level=settings.log_level,
         file_enabled=settings.log_file_enabled,
         console_enabled=settings.log_console_enabled,
@@ -44,12 +44,12 @@ def setup_logging() -> None:
 
 
 __all__ = [
-    "logger",
-    "AppLogger",
-    "setup_logging",
-    "UserContext",
-    "get_user_context",
-    "set_user_context",
-    "clear_user_context",
-    "LoggingMiddleware",
+    'logger',
+    'AppLogger',
+    'setup_logging',
+    'UserContext',
+    'get_user_context',
+    'set_user_context',
+    'clear_user_context',
+    'LoggingMiddleware',
 ]

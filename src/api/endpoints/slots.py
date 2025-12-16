@@ -96,7 +96,10 @@ async def update_slot(
 
     try:
         return await slot_crud.update(
-            db_obj=slot, obj_in=slot_in, session=session)
+            db_obj=slot,
+            obj_in=slot_in,
+            session=session,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
