@@ -15,7 +15,7 @@ class AuthManager:
 
     async def authenticate(self, login: str, password: str) -> User:
         """Аутентификация пользователя."""
-        user = await user_crud.get_by_login(login)
+        user = await user_crud.get_by_login(login=login, session=self.session)
 
         if not user:
             raise InvalidCredentials
