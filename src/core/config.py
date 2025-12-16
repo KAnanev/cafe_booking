@@ -43,11 +43,6 @@ class Settings(BaseSettings):
         """Возвращает URL для асинхронной базы данных (postgresql+asyncpg)."""
         return self._generate_db_url('postgresql+asyncpg')
 
-    @property
-    def sync_database_url(self) -> str:
-        """Возвращает URL для синхронной базы данных (postgresql)."""
-        return self._generate_db_url('postgresql')
-
     def _generate_db_url(self, protocol: str) -> str:
         """Формирует URL для подключения к базе данных."""
         return (
