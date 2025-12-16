@@ -1,7 +1,7 @@
 from enum import IntEnum
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import CheckConstraint, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
@@ -77,6 +77,12 @@ class User(TimestampMixin, ActiveMixin, Base):
     role: Mapped[UserRoles] = mapped_column(
         Integer,
         default=UserRoles.USER,
+        nullable=False,
+    )
+
+    is_superuser: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
         nullable=False,
     )
 
