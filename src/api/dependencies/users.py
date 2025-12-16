@@ -15,7 +15,7 @@ from managers.exceptions import PermissionDenied, UserInactive
 from models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='/auth/login',
+    tokenUrl='/auth/token',
     auto_error=False,
 )
 
