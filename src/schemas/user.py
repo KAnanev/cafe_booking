@@ -1,13 +1,23 @@
-import re
-from typing import Optional
+from typing import Annotated, Optional
 
 from pydantic import (
     ConfigDict,
     EmailStr,
-    field_validator,
+    StringConstraints,
     model_validator,
 )
 
+from core.constants import (
+    PASSWORD_HASH_MAX_LENGTH,
+    PASSWORD_HASH_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    PHONE_PATTERN,
+    TG_ID_MAX_LENGTH,
+    TG_ID_MIN_LENGTH,
+    USERNAME_MAX_LENGTH,
+    USERNAME_MIN_LENGTH,
+)
 from models.user import UserRole
 from schemas.base import (
     ActiveSchema,
@@ -15,6 +25,43 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
+
+UsernameStr = Annotated[
+    str,
+    StringConstraints(
+        min_length=USERNAME_MIN_LENGTH,
+        max_length=USERNAME_MAX_LENGTH,
+    ),
+]
+
+PasswordStr = Annotated[
+    str,
+    StringConstraints(
+        min_length=PASSWORD_MIN_LENGTH,
+        max_length=PASSWORD_MAX_LENGTH,
+    ),
+]
+
+PhoneStr = Annotated[
+    str,
+    StringConstraints(pattern=PHONE_PATTERN),
+]
+
+TelegramStr = Annotated[
+    str,
+    StringConstraints(
+        min_length=TG_ID_MIN_LENGTH,
+        max_length=TG_ID_MAX_LENGTH,
+    ),
+]
+
+HashedPasswordStr = Annotated[
+    str,
+    StringConstraints(
+        min_length=PASSWORD_HASH_MIN_LENGTH,
+        max_length=PASSWORD_HASH_MAX_LENGTH,
+    ),
+]
 
 
 class UserBase(BaseSchema):
@@ -25,33 +72,10 @@ class UserBase(BaseSchema):
     при регистрации (проверяется на уровне UserCreate).
     """
 
-    username: str
+    username: UsernameStr
     email: Optional[EmailStr] = None
-    phone: Optional[str] = None
-    tg_id: Optional[str] = None
-
-    @field_validator('phone')
-    @classmethod
-    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
-        """Проверяет, что номер телефона соответствует формату +79991234567.
-
-        Args:
-            v: Входное значение номера телефона (может быть None).
-
-        Returns:
-            Валидный номер телефона или None.
-
-        Raises:
-            ValueError: Если формат номера неверен.
-
-        """
-        if v is None:
-            return None
-        if not re.match(r'^\+7\d{10}$', v):
-            raise ValueError(
-                'Неверный формат телефона. Ожидается: +79991234567',
-            )
-        return v
+    phone: Optional[PhoneStr] = None
+    tg_id: Optional[TelegramStr] = None
 
 
 class UserDB(TimestampSchema, ActiveSchema, UserBase, UUIDIDSchema):
@@ -70,7 +94,9 @@ class UserCreate(UserBase):
     Требует пароль и хотя бы один контакт (email или телефон).
     """
 
-    password: str
+    model_config = ConfigDict(extra='forbid')
+
+    password: PasswordStr
 
     @model_validator(mode='after')
     def validate_at_least_one_contact(self) -> 'UserCreate':
@@ -91,11 +117,11 @@ class UserCreate(UserBase):
 class UserMeUpdate(BaseSchema):
     """Схема для обновления собственных данных пользователя."""
 
-    username: Optional[str] = None
+    username: Optional[UsernameStr] = None
     email: Optional[EmailStr] = None
-    phone: Optional[str] = None
-    tg_id: Optional[str] = None
-    password: Optional[str] = None
+    phone: Optional[PhoneStr] = None
+    tg_id: Optional[TelegramStr] = None
+    password: Optional[PasswordStr] = None
 
     model_config = ConfigDict(extra='forbid')
 
@@ -113,11 +139,11 @@ class UserCreateDB(BaseSchema):
     Используется только в сервисном слое. Не применяется в API.
     """
 
-    username: str
+    username: UsernameStr
     email: Optional[EmailStr]
-    phone: Optional[str]
+    phone: Optional[PhoneStr]
     tg_id: Optional[str]
-    hashed_password: str
+    hashed_password: HashedPasswordStr
     is_active: bool = True
     role: UserRole = UserRole.USER
     is_superuser: bool = False

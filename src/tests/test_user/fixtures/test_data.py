@@ -25,7 +25,7 @@ USERNAME_7 = 'anotheruser'
 USERNAME_8 = 'newuser'
 USERNAME_9 = 'conflictinguser'
 
-DEFAULT_PASSWORD = 'secret'
+DEFAULT_PASSWORD = 'secret_password'
 DEFAULT_HASH = 'fake_hash'
 USER_TEST_LOCAL = 'user@test.com'
 MANAGER_TEST_LOCAL = 'manager@test.com'
