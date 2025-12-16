@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post(
-    '/',
+    '/login',
     status_code=status.HTTP_201_CREATED,
     summary='Вход в систему',
 )
