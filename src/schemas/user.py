@@ -29,7 +29,6 @@ class UserBase(BaseSchema):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     tg_id: Optional[str] = None
-    role: Optional[UserRole] = None
 
     @field_validator('phone')
     @classmethod
@@ -59,8 +58,10 @@ class UserDB(TimestampSchema, ActiveSchema, UserBase, UUIDIDSchema):
     """Полная схема пользователя, как она хранится в базе данных.
 
     Включает служебные поля: идентификатор (UUID), временные метки,
-    флаг активности и целочисленную роль (например, 0 — admin, 3 — user).
+    флаг активности и роль пользователя (enum: admin / manager / user).
     """
+
+    role: UserRole
 
 
 class UserCreate(UserBase):
@@ -87,13 +88,6 @@ class UserCreate(UserBase):
         return self
 
 
-class UserCreateDB(UserBase):
-    """Схема входящих данных при передаче в CRUD."""
-
-    hashed_password: str
-    is_superuser: bool
-
-
 class UserMeUpdate(BaseSchema):
     """Схема для обновления собственных данных пользователя."""
 
@@ -111,3 +105,19 @@ class UserAdminUpdate(UserMeUpdate):
 
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
+
+
+class UserCreateDB(BaseSchema):
+    """Внутренняя схема создания пользователя для передачи в CRUD.
+
+    Используется только в сервисном слое. Не применяется в API.
+    """
+
+    username: str
+    email: Optional[EmailStr]
+    phone: Optional[str]
+    tg_id: Optional[str]
+    hashed_password: str
+    is_active: bool = True
+    role: UserRole = UserRole.USER
+    is_superuser: bool = False
