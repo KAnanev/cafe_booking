@@ -67,12 +67,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Обновляет существующий объект."""
+        model_columns = set(inspect(self.model).columns.keys())
+
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
             update_data = obj_in.model_dump(exclude_unset=True)
 
-        for field, value in update_data.items():
+        filtered_data = {
+            k: v for k, v in update_data.items() if k in model_columns
+        }
+
+        for field, value in filtered_data.items():
             setattr(db_obj, field, value)
 
         session.add(db_obj)
