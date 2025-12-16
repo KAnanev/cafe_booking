@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     postgres_db_override: Optional[str] = None
 
     # Логирование
-    log_level: str = "INFO"
-    log_file_path: str = "logs/app.log"
-    log_file_max_size: str = "10 MB"
+    log_level: str = 'INFO'
+    log_file_path: str = 'logs/app.log'
+    log_file_max_size: str = '10 MB'
     log_file_rotation_count: int = 5
     log_file_compression: Optional[str] = None
     log_console_enabled: bool = False

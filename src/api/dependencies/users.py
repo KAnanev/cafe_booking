@@ -8,11 +8,11 @@ from api.exceptions import (
     UserNotFoundHTTP,
 )
 from core.db import get_async_session
+from core.logging import set_user_context
 from core.security import decode_access_token
 from crud.user import user_crud
 from managers.exceptions import PermissionDenied, UserInactive
 from models.user import User, UserRoles
-from core.logging import set_user_context
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl='/auth/login',
@@ -24,11 +24,24 @@ async def get_current_user(
     session: AsyncSession = Depends(get_async_session),
     token: str = Depends(oauth2_scheme),
 ) -> User:
-    """Получение текущего аутентифицированного пользователя.
+    """Возвращает текущего аутентифицированного пользователя.
 
-    Извлекает JWT access-токен из заголовка Authorization,
-    декодирует его, загружает пользователя из базы данных
-    и проверяет его активность.
+    Использовать, когда:
+    - нужна только проверка JWT и загрузка пользователя из БД
+    - логирование пользователя не требуется
+    - dependency используется во внутренних сервисах, фоновых задачах
+    или тестах
+    - требуется минимальная зависимость без побочных эффектов
+
+    Выполняет:
+    - извлечение access-токена из заголовка Authorization
+    - декодирование JWT
+    - загрузку пользователя из базы данных
+    - проверку активности пользователя (is_active)
+
+    Не выполняет:
+    - установку контекста логирования
+    - проверку ролей
     """
     user_id = decode_access_token(token)
 
@@ -38,8 +51,27 @@ async def get_current_user(
 
     if not user.is_active:
         raise UserInactive('Пользователь неактивен')
-        raise UserInactiveHTTP()
-    # Устанавливаем контекст пользователя для логирования
+    return user
+
+
+async def get_current_active_user(
+    user: User = Depends(get_current_user),
+) -> User:
+    """Возвращает текущего пользователя с установленным контекстом логирования.
+
+    Использовать, когда:
+    - dependency применяется в HTTP-эндпоинтах FastAPI
+    - требуется логирование с привязкой к пользователю
+    - необходимо единообразное заполнение user-context для логов и трассировки
+
+    Выполняет:
+    - установку контекста пользователя для логирования (user_id, email, role)
+    - возвращает уже аутентифицированного и активного пользователя
+
+    Рекомендуется использовать:
+    - напрямую в эндпоинтах
+    - как базовую зависимость для require_role(...)
+    """
     set_user_context(
         user_id=user.id,
         username=user.email,
@@ -52,14 +84,24 @@ async def get_current_user(
 def require_role(
     *allowed_roles: UserRoles,
 ) -> Callable[..., Coroutine[Any, Any, User]]:
-    """Проверка роли пользователя.
+    """Dependency-фабрика для проверки роли пользователя.
 
-    Используется для ограничения доступа к эндпоинтам
-    на основе роли (ADMIN, MANAGER, ...).
+    Использовать, когда:
+    - требуется ограничить доступ к эндпоинту по ролям
+    - необходимо логирование пользователя (через get_current_active_user)
+    - эндпоинт доступен только ADMIN / MANAGER / и т.д.
+
+    Особенности:
+    - автоматически включает аутентификацию
+    - автоматически устанавливает контекст логирования
+    - проверяет, что роль пользователя входит в allowed_roles
+
+    Пример:
+        Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER))
     """
 
     async def role_checker(
-        current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_active_user),
     ) -> User:
         """Проверяет роль текущего пользователя."""
         if current_user.role not in allowed_roles:

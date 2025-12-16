@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.permissions import allow_anonymous_or_roles
-from api.dependencies.users import get_current_user, require_role
+from api.dependencies.users import get_current_active_user, require_role
 from api.exceptions import UserNotFoundHTTP
 from core.db import get_async_session
 from crud.user import user_crud
@@ -68,7 +68,7 @@ async def get_all_users(
     summary='Получение информации о текущем пользователе',
 )
 async def get_me(
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_active_user),
 ) -> UserDB:
     """Возвращает информацию о текущем пользователе.
 
@@ -85,7 +85,7 @@ async def get_me(
 )
 async def update_me(
     data: UserMeUpdate,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе.
