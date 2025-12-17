@@ -14,7 +14,8 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from .cafe import Cafe
+    from models.booking_table_slot import BookingTableSlot
+    from models.cafe import Cafe
 
 
 class Table(TimestampMixin, ActiveMixin, Base):
@@ -50,5 +51,11 @@ class Table(TimestampMixin, ActiveMixin, Base):
     cafe: Mapped['Cafe'] = relationship(
         'Cafe',
         back_populates='tables',
+        lazy='selectin',
+    )
+    booking_links: Mapped[list['BookingTableSlot']] = relationship(
+        'BookingTableSlot',
+        back_populates='table',
+        cascade='all, delete-orphan',
         lazy='selectin',
     )
