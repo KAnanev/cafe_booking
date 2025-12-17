@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.constant import (
+from core.constants import (
     CAFE_ADDRESS_MAX_LENGTH,
     CAFE_NAME_MAX_LENGTH,
     DESCRIPTION_MAX_LENGTH,

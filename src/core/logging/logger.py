@@ -18,10 +18,10 @@ class AppLogger:
     def _format_event_details(self, **kwargs: Any) -> str:
         """Форматирует дополнительные параметры в строку для event_details."""
         if not kwargs:
-            return ""
+            return ''
         filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
         if not filtered_kwargs:
-            return ""
+            return ''
         try:
             return json.dumps(filtered_kwargs, ensure_ascii=False, default=str)
         except (TypeError, ValueError):
@@ -32,8 +32,8 @@ class AppLogger:
         user_context = get_user_context()
         user_info = user_context.to_user_info()
         extra: dict[str, Any] = {
-            "user_info": user_info,
-            "event_details": self._format_event_details(**kwargs),
+            'user_info': user_info,
+            'event_details': self._format_event_details(**kwargs),
         }
         return extra
 

@@ -20,7 +20,7 @@ def setup_file_handler() -> Optional[int]:
         log_dir.mkdir(parents=True, exist_ok=True)
     except OSError as e:
         logger.error(
-            f"Не удалось создать директорию для логов: {log_dir}: {e}",
+            f'Не удалось создать директорию для логов: {log_dir}: {e}',
         )
         raise
     log_format = create_log_format()
@@ -34,7 +34,7 @@ def setup_file_handler() -> Optional[int]:
         enqueue=True,
         backtrace=True,
         diagnose=True,
-        encoding="utf-8",
+        encoding='utf-8',
     )
 
 

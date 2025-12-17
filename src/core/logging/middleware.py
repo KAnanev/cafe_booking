@@ -39,14 +39,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             process_time_ms = int(process_time * 1000)
             status_code = response.status_code if response else 500
             response_details = {
-                "method": method,
-                "path": path,
-                "status_code": status_code,
-                "response_time_ms": process_time_ms,
+                'method': method,
+                'path': path,
+                'status_code': status_code,
+                'response_time_ms': process_time_ms,
             }
-            log_msg = f"HTTP {method} {path} -> {status_code}"
+            log_msg = f'HTTP {method} {path} -> {status_code}'
             if exception:
-                response_details["exception"] = type(exception).__name__
+                response_details['exception'] = type(exception).__name__
                 logger.error(log_msg, exception=exception, **response_details)
             else:
                 if status_code >= 500:

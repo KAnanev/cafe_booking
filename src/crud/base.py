@@ -1,4 +1,4 @@
-from typing import Generic, Optional, Sequence, Type, TypeVar
+from typing import Any, Generic, Optional, Sequence, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
@@ -21,7 +21,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_by_id(
         self,
-        obj_id: int,
+        obj_id: Any,
         session: AsyncSession,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
@@ -63,15 +63,24 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def update(
         self,
         db_obj: ModelType,
-        obj_in: UpdateSchemaType,
+        obj_in: Union[UpdateSchemaType, dict],
         session: AsyncSession,
     ) -> ModelType:
-        """Обновляет существующий объект в базе данных."""
-        obj_data = obj_in.dict(exclude_unset=True)
+        """Обновляет существующий объект."""
+        model_columns = set(inspect(self.model).columns.keys())
 
-        for field in obj_data:
-            if field in obj_data:
-                setattr(db_obj, field, obj_data[field])
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
+
+        filtered_data = {
+            k: v for k, v in update_data.items() if k in model_columns
+        }
+
+        for field, value in filtered_data.items():
+            setattr(db_obj, field, value)
+
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)

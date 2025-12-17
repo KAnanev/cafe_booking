@@ -18,9 +18,9 @@ class UserContext:
     def to_user_info(self) -> str:
         """Форматирует информацию о пользователе для логирования."""
         if self.user_id is None:
-            return "SYSTEM"
-        username = self.username or self.email or "Unknown"
-        return f"{username}({self.user_id})"
+            return 'SYSTEM'
+        username = self.username or self.email or 'Unknown'
+        return f'{username}({self.user_id})'
 
     def is_set(self) -> bool:
         """Проверяет, установлен ли контекст пользователя."""
@@ -28,7 +28,7 @@ class UserContext:
 
 
 _user_context: ContextVar[Optional[UserContext]] = ContextVar(
-    "user_context",
+    'user_context',
     default=None,
 )
 

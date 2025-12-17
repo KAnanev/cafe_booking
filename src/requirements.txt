@@ -1,13 +1,27 @@
-alembic==1.17.2
-fastapi==0.124.2
+# --- FastAPI & ASGI ---
+fastapi~=0.124.4
+uvicorn~=0.38.0
+
+# --- Database ---
+SQLAlchemy~=2.0.45
 asyncpg==0.30.0
 psycopg2-binary==2.9.11
-asyncpg==0.30.0
-pydantic[email]==2.12.5
-pydantic-settings==2.12.0
-python-dotenv==1.2.1
-SQLAlchemy==2.0.45
-ruff==0.11.11
-pre-commit==4.2.0
-uvicorn==0.38.0
+alembic~=1.17.2
+
+# --- Pydantic & Settings ---
+pydantic[email]~=2.12.5
+pydantic-settings~=2.12.0
+
+# --- Security & Auth ---
+PyJWT~=2.10.1
+pwdlib[argon2]~=0.3.0
+
+# --- HTTP client ---
+httpx~=0.28.1
+
+# --- Testing ---
+pytest~=9.0.2
+pytest-asyncio~=1.3.0
+
+# --- Logging ---
 loguru==0.7.3
