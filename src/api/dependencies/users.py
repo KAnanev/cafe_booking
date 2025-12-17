@@ -1,71 +1,111 @@
-from http import HTTPStatus
-from typing import Awaitable, Callable
-from uuid import UUID
+from typing import Any, Callable, Coroutine
 
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.exceptions import (
+    UserNotFoundHTTP,
+)
 from core.db import get_async_session
-from models.user import Roles, User
+from core.logging import set_user_context
+from core.security import decode_access_token
+from crud.user import user_crud
+from managers.exceptions import PermissionDenied, UserInactive
+from models.user import User, UserRole
 
-security = HTTPBearer(auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl='/auth/token',
+    auto_error=False,
+)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session: AsyncSession = Depends(get_async_session),
+    token: str = Depends(oauth2_scheme),
 ) -> User:
-    """Текущий пользователь."""
-    if credentials is None:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Необходимо авторизоваться.',
-        )
+    """Возвращает текущего аутентифицированного пользователя.
 
-    token = (credentials.credentials or '').strip()
-    if not token:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пустой токен авторизации.',
-        )
+    Использовать, когда:
+    - нужна только проверка JWT и загрузка пользователя из БД
+    - логирование пользователя не требуется
+    - dependency используется во внутренних сервисах, фоновых задачах
+    или тестах
+    - требуется минимальная зависимость без побочных эффектов
 
-    user: User | None = None
-    try:
-        user_id = UUID(token)
-        result = await session.execute(
-            select(User).where(User.id == user_id),
-        )
-        user = result.scalars().first()
-    except ValueError:
-        result = await session.execute(
-            select(User).where(User.email == token),
-        )
-        user = result.scalars().first()
+    Выполняет:
+    - извлечение access-токена из заголовка Authorization
+    - декодирование JWT
+    - загрузку пользователя из базы данных
+    - проверку активности пользователя (is_active)
 
-    if user is None:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пользователь не найден.',
-        )
-    if hasattr(user, 'is_active') and not user.is_active:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Пользователь неактивен.',
-        )
+    Не выполняет:
+    - установку контекста логирования
+    - проверку ролей
+    """
+    user_id = decode_access_token(token)
 
+    user = await user_crud.get_by_id(obj_id=user_id, session=session)
+    if not user:
+        raise UserNotFoundHTTP()
+
+    if not user.is_active:
+        raise UserInactive('Пользователь неактивен')
     return user
 
 
-def required_role(role: Roles) -> Callable[[User], Awaitable[User]]:
-    """Возвращает зависимость, проверяющую минимальную роль пользователя."""
-    async def check_role(user: User = Depends(get_current_user)) -> User:
-        if user.role < role:
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN,
-                detail='Недостаточно прав.',
-            )
-        return user
+async def get_current_active_user(
+    user: User = Depends(get_current_user),
+) -> User:
+    """Возвращает текущего пользователя с установленным контекстом логирования.
 
-    return check_role
+    Использовать, когда:
+    - dependency применяется в HTTP-эндпоинтах FastAPI
+    - требуется логирование с привязкой к пользователю
+    - необходимо единообразное заполнение user-context для логов и трассировки
+
+    Выполняет:
+    - установку контекста пользователя для логирования (user_id, email, role)
+    - возвращает уже аутентифицированного и активного пользователя
+
+    Рекомендуется использовать:
+    - напрямую в эндпоинтах
+    - как базовую зависимость для require_role(...)
+    """
+    set_user_context(
+        user_id=user.id,
+        username=user.email,
+        email=user.email,
+        role=user.role.name if hasattr(user.role, 'name') else str(user.role),
+    )
+    return user
+
+
+def require_role(
+    *allowed_roles: UserRole,
+) -> Callable[..., Coroutine[Any, Any, User]]:
+    """Dependency-фабрика для проверки роли пользователя.
+
+    Использовать, когда:
+    - требуется ограничить доступ к эндпоинту по ролям
+    - необходимо логирование пользователя (через get_current_active_user)
+    - эндпоинт доступен только ADMIN / MANAGER / и т.д.
+
+    Особенности:
+    - автоматически включает аутентификацию
+    - автоматически устанавливает контекст логирования
+    - проверяет, что роль пользователя входит в allowed_roles
+
+    Пример:
+        Depends(require_role(UserRoles.ADMIN, UserRoles.MANAGER))
+    """
+
+    async def role_checker(
+        current_user: User = Depends(get_current_active_user),
+    ) -> User:
+        """Проверяет роль текущего пользователя."""
+        if current_user.role not in allowed_roles:
+            raise PermissionDenied()
+        return current_user
+
+    return role_checker

@@ -1,15 +1,16 @@
 import uuid
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 
-from fastapi import UploadFile, HTTPException, status
 from PIL import Image as PILImage
+from fastapi import HTTPException, UploadFile, status
 
 from core.config import settings
-from core.constant import MAX_IMAGE_SIZE, ALLOWED_IMAGE_CONTENT_TYPES
+from core.constant import ALLOWED_IMAGE_CONTENT_TYPES, MAX_IMAGE_SIZE
 
 
 def validate_image(file: UploadFile) -> None:
+    """Загруженный файл должен быть в формате JPG или PNG."""
     if file.content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -18,6 +19,7 @@ def validate_image(file: UploadFile) -> None:
 
 
 async def read_and_validate_size(file: UploadFile) -> bytes:
+    """Читает файл и проверяет, что его размер не превышает MAX_IMAGE_SIZE."""
     content = await file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(
@@ -28,6 +30,7 @@ async def read_and_validate_size(file: UploadFile) -> bytes:
 
 
 def convert_to_jpg(content: bytes) -> bytes:
+    """Преобразует изображение в формат JPEG с качеством 90."""
     try:
         image = PILImage.open(BytesIO(content))
     except (IOError, OSError):
@@ -46,6 +49,7 @@ def convert_to_jpg(content: bytes) -> bytes:
 
 
 def generate_image_path(image_id: uuid.UUID) -> Path:
+    """Генерирует путь для сохранения изображения на основе его UUID."""
     media_root = Path(settings.media_storage_path)
     media_root.mkdir(parents=True, exist_ok=True)
     return media_root / f"{image_id}.jpg"

@@ -1,6 +1,6 @@
 from pydantic import ConfigDict, Field
 
-from core.constant import (
+from core.constants import (
     CAFE_ADDRESS_MAX_LENGTH,
     CAFE_NAME_MAX_LENGTH,
     CAFE_NAME_MIN_LENGTH,

@@ -27,7 +27,8 @@
 
 
 import uuid
-from sqlalchemy import Boolean, String, DateTime, func
+
+from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,6 +36,8 @@ from core.db import Base
 
 
 class Image(Base):
+    """Модель для хранения метаданных изображений в системе."""
+
     __tablename__ = "images"
 
     id: Mapped[uuid.UUID] = mapped_column(

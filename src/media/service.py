@@ -1,15 +1,16 @@
-import uuid
 import logging
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import UploadFile, HTTPException, status
+import uuid
+
+from fastapi import HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from media.models import Image
 from media.utils import (
-    validate_image,
-    read_and_validate_size,
     convert_to_jpg,
     generate_image_path,
+    read_and_validate_size,
+    validate_image,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ async def upload_image(
     file: UploadFile,
     username: str | None = None,
 ) -> uuid.UUID:
+    """Загружает изображение, конвертирует в JPG и сохраняет в БД."""
     try:
         validate_image(file)
 
@@ -64,6 +66,7 @@ async def get_image(
     db: AsyncSession,
     image_id: uuid.UUID,
 ) -> FileResponse:
+    """Получает изображение по UUID и возвращает в виде файла."""
     image = await db.get(Image, image_id)
 
     if not image or not image.active:
