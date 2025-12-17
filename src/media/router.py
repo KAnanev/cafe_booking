@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import get_async_session
@@ -38,6 +39,6 @@ async def upload_image_endpoint(
 async def get_image_endpoint(
     image_id: UUID,
     db: AsyncSession = Depends(get_async_session),
-):
+) -> FileResponse:
     """Возвращает эндпоинт для изображения по его UUID."""
     return await get_image(db=db, image_id=image_id)
