@@ -6,7 +6,7 @@ from PIL import Image as PILImage
 from fastapi import HTTPException, UploadFile, status
 
 from core.config import settings
-from core.constant import ALLOWED_IMAGE_CONTENT_TYPES, MAX_IMAGE_SIZE
+from core.constants import ALLOWED_IMAGE_CONTENT_TYPES, MAX_IMAGE_SIZE
 
 
 def validate_image(file: UploadFile) -> None:
