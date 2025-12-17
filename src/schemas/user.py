@@ -79,17 +79,17 @@ class UserBase(BaseSchema):
 
 
 class UserDB(TimestampSchema, ActiveSchema, UserBase, UUIDIDSchema):
-    """Полная схема пользователя, как она хранится в базе данных.
+    """Полная схема пользователя, как для чтения и базой валидации.
 
     Включает служебные поля: идентификатор (UUID), временные метки,
-    флаг активности и роль пользователя (enum: admin / manager / user).
+    статус активности и роль пользователя (enum: admin / manager / user).
     """
 
     role: UserRole
 
 
 class UserCreate(UserBase):
-    """Схема входящих данных при регистрации нового пользователя.
+    """Схема для приема данных при регистрации нового пользователя.
 
     Требует пароль и хотя бы один контакт (email или телефон).
     """
@@ -100,22 +100,16 @@ class UserCreate(UserBase):
 
     @model_validator(mode='after')
     def validate_at_least_one_contact(self) -> 'UserCreate':
-        """Обеспечивает, что указан хотя бы один: email или телефон.
-
-        Returns:
-            Экземпляр UserCreate, если валидация пройдена.
-
-        Raises:
-            ValueError: Если email и phone одновременно отсутствуют.
-
-        """
+        """Проверяет, чтобы был указан хотя бы один контакт."""
         if self.email is None and self.phone is None:
-            raise ValueError('Укажите электронную почту или номер телефона.')
+            raise ValueError(
+                'Необходимо указать хотя бы email или телефон.',
+            )
         return self
 
 
 class UserMeUpdate(BaseSchema):
-    """Схема для обновления собственных данных пользователя."""
+    """Схема для частичного обновления своих данных пользователя."""
 
     username: Optional[UsernameStr] = None
     email: Optional[EmailStr] = None
@@ -127,16 +121,16 @@ class UserMeUpdate(BaseSchema):
 
 
 class UserAdminUpdate(UserMeUpdate):
-    """Схема для обновления пользователя администратором."""
+    """Схема для частичного обновления пользователя администратором."""
 
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
 
 
 class UserCreateDB(BaseSchema):
-    """Внутренняя схема создания пользователя для передачи в CRUD.
+    """Служебная схема для записи пользователя в базу и CRUD.
 
-    Используется только в сервисном слое. Не применяется в API.
+    Используется только внутри сервисов и репозиториев. Не для API.
     """
 
     username: UsernameStr
@@ -147,3 +141,12 @@ class UserCreateDB(BaseSchema):
     is_active: bool = True
     role: UserRole = UserRole.USER
     is_superuser: bool = False
+
+
+class UserShortInfo(UUIDIDSchema, BaseSchema):
+    """Краткая информация о пользователе."""
+
+    username: UsernameStr
+    email: Optional[EmailStr] = None
+    phone: Optional[PhoneStr] = None
+    tg_id: Optional[TelegramStr] = None

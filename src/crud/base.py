@@ -91,7 +91,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         session: AsyncSession,
     ) -> ModelType:
-        """Отключает объект."""
+        """Искусственное удаление."""
         if hasattr(db_obj, 'is_active'):
             setattr(db_obj, 'is_active', False)
             session.add(db_obj)
@@ -100,5 +100,5 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             return db_obj
 
         raise AttributeError(
-            f'Модель {db_obj.__class__.__name__} не поддерживает отключение.',
+            f'Объект {db_obj.__class__.__name__} не поддерживает удаление.',
         )

@@ -4,9 +4,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.exceptions import (
-    UserNotFoundHTTP,
-)
+from api.exceptions import UserNotFoundHTTP
 from core.db import get_async_session
 from core.logging import set_user_context
 from core.security import decode_access_token

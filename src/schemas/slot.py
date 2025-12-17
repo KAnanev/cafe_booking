@@ -14,10 +14,9 @@ from schemas.base import (
 from schemas.cafe import CafeShort
 
 
-class TimeSlotShort(BaseSchema):
+class TimeSlotShort(UUIDIDSchema, BaseSchema):
     """Краткая информация о слоте."""
 
-    id: int | None = None
     start_time: time
     end_time: time
     description: str = Field(
