@@ -136,3 +136,6 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
                 slot_id=pair.slot_id,
             )
             session.add(link)
+
+
+booking_crud = BookingCRUD(Booking)
