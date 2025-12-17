@@ -72,6 +72,16 @@ UUID_LENGTH = 36
 
 
 # =========================
+# Медиа
+# =========================
+ALLOWED_IMAGE_CONTENT_TYPES = {
+    'image/jpeg',
+    'image/png',
+}
+MAX_IMAGE_SIZE = 5242880
+
+
+# =========================
 # OpenAPI / Swagger теги
 # =========================
 AUTH_TAG = 'Аутентификация'
