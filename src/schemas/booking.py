@@ -74,3 +74,23 @@ class BookingInfo(UUIDIDSchema, TimestampSchema, ActiveSchema, BaseSchema):
     note: str | None = None
     status: BookingStatus
     booking_date: date
+
+class BookingUpdate(BaseSchema):
+    """Частичное обновление бронирования (дата, гость, заметка, статус, слоты)."""
+
+    # Поля, которые можно изменить
+    cafe_id: UUID | None = None
+    booking_date: date | None = None
+    guest_number: int | None = Field(default=None, gt=0)
+    note: str | None = None
+    status: BookingStatus | None = None
+    
+    tables_slots: list[TablesSlots] | None = None 
+
+    @field_validator('booking_date')
+    @classmethod
+    def validate_booking_date(cls, value: date | None) -> date | None:
+        """Нельзя бронировать прошедшее время."""
+        if value is not None and value < date.today():
+            raise ValueError('Нельзя установить дату бронирования в прошлом.')
+        return value
