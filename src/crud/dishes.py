@@ -19,17 +19,17 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         commit: bool = True,
     ) -> Dish:
         dish_data = obj_in.model_dump(exclude={'cafes_id'})
-        
+
         db_obj = self.model(**dish_data)
         session.add(db_obj)
         await session.flush()
-        
+
         await self._save_cafe_links(db_obj, obj_in.cafes_id, session)
-        
+
         if commit:
             await session.commit()
             await session.refresh(db_obj)
-            
+
         return db_obj
 
     async def update(
@@ -38,17 +38,29 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         obj_in: Union[DishUpdate, dict],
         session: AsyncSession,
     ) -> Dish:
-        await super().update(db_obj, obj_in, session)
+        update_data = obj_in if isinstance(
+            obj_in, dict) else obj_in.model_dump(exclude_unset=True)
 
-        update_data = obj_in if isinstance(obj_in, dict) else obj_in.model_dump()
-        
-        if update_data.get('cafes_id') is not None:
+        # 1. Обновление полей (имитация CRUDBase.update без коммита)
+        model_columns = set(inspect(self.model).columns.keys())
+        filtered_data = {
+            k: v for k, v in update_data.items() if k in model_columns
+        }
+
+        for field, value in filtered_data.items():
+            setattr(db_obj, field, value)
+
+        session.add(db_obj)
+
+        # 2. Обновление связей
+        if 'cafes_id' in update_data:
             await self._update_cafe_links(db_obj, update_data['cafes_id'], session)
-        
+
+        # 3. Единый коммит для полей и связей
         await session.commit()
         await session.refresh(db_obj)
         return db_obj
-    
+
     async def get_all(
         self,
         session: AsyncSession,
@@ -57,16 +69,16 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
     ) -> Sequence[Dish]:
         """Получить список блюд, с опциональной фильтрацией по кафе."""
         query = select(self.model)
-        
+
         if cafe_id:
-            query = query.join(DishCafeLink).where(DishCafeLink.cafe_id == cafe_id)
+            query = query.join(DishCafeLink).where(
+                DishCafeLink.cafe_id == cafe_id)
 
         if not show_all:
             query = query.where(self.model.is_active.is_(True))
-            
+
         result = await session.execute(query)
         return result.scalars().all()
-
 
     async def _save_cafe_links(self, dish: Dish, cafe_ids: List[UUID], session: AsyncSession):
         """Создает новые связи между блюдом и кафе."""
