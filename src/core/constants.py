@@ -64,6 +64,13 @@ TABLE_MIN_SEATS_NUMBER = 1
 TABLE_MAX_SEATS_NUMBER = 12
 TABLE_DESCRIPTION_MAX_LENGTH = 256
 
+# =========================
+# Блюда
+# =========================
+DISH_DESCRIPTION_MAX_LENGTH = 100
+DISH_NAME_MAX_LENGTH = 100
+UUID_LENGTH = 100
+
 
 # =========================
 # Общие ограничения
