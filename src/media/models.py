@@ -38,7 +38,7 @@ from core.db import Base
 class Image(Base):
     """Модель для хранения метаданных изображений в системе."""
 
-    __tablename__ = "images"
+    __tablename__ = 'images'
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
-    media_storage_path: str = "media_storage/images"
+    media_storage_path: str = 'media_storage/images'
 
     postgres_db_override: Optional[str] = None
 
