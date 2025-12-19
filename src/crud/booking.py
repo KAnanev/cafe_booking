@@ -12,6 +12,7 @@ from crud.base import CRUDBase
 from models.booking import Booking, BookingStatus
 from models.booking_table_slot import BookingTableSlot
 from models.cafe import Cafe
+from models.relations import cafe_managers
 from models.slots import Slot
 from models.table import Table
 from schemas.booking import BookingCreate, TablesSlots
@@ -21,6 +22,18 @@ _BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
 
 class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
     """CRUD с валидацией для бронирований."""
+
+    async def get_manager_cafe_ids(
+        self,
+        manager_id: UUID,
+        session: AsyncSession,
+    ) -> list[UUID]:
+        """Возвращает список кафе менеджера."""
+        query = select(cafe_managers.c.cafe_id).where(
+            cafe_managers.c.user_id == manager_id,
+        )
+        result = await session.execute(query)
+        return list(result.scalars().all())
 
     async def get_by_id_with_relations(
         self,
@@ -52,6 +65,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         session: AsyncSession,
         show_all: bool = False,
         cafe_id: UUID | None = None,
+        cafe_ids: Sequence[UUID] | None = None,
         user_id: UUID | None = None,
     ) -> list[Booking]:
         """Получает список бронирований с зависимостями."""
@@ -64,7 +78,9 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
                 BookingTableSlot.slot,
             ),
         )
-        if cafe_id:
+        if cafe_ids:
+            query = query.where(Booking.cafe_id.in_(cafe_ids))
+        elif cafe_id:
             query = query.where(Booking.cafe_id == cafe_id)
         if user_id:
             query = query.where(Booking.user_id == user_id)
@@ -77,6 +93,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         self,
         obj_in: BookingCreate,
         session: AsyncSession,
+        user_id: UUID | None = None,
     ) -> Booking:
         """Создание бронирования с проверками."""
         await self._validate_booking_date(obj_in.booking_date)
@@ -93,6 +110,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         )
 
         booking = Booking(
+            user_id=user_id,
             cafe_id=obj_in.cafe_id,
             guest_number=obj_in.guest_number,
             note=obj_in.note,
