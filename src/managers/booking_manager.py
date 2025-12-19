@@ -107,7 +107,11 @@ class BookingManager:
             if cafe_id not in cafe_ids:
                 raise PermissionDenied('Нет доступа к этому кафе')
 
-    async def _ensure_access(self, current_user: User, booking: Booking) -> None:
+    async def _ensure_access(
+        self,
+        current_user: User,
+        booking: Booking,
+    ) -> None:
         """Проверяет доступ к бронированию."""
         if current_user.role == UserRole.ADMIN:
             return
