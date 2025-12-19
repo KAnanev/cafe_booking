@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from crud.base import CRUDBase
 from models.booking import Booking, BookingStatus
@@ -20,6 +21,57 @@ _BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
 
 class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
     """CRUD с валидацией для бронирований."""
+
+    async def get_by_id_with_relations(
+        self,
+        booking_id: UUID,
+        session: AsyncSession,
+        show_all: bool = True,
+    ) -> Booking | None:
+        """Получает бронирование с зависимостями."""
+        query = (
+            select(Booking)
+            .options(
+                selectinload(Booking.cafe),
+                selectinload(Booking.tables_slots).selectinload(
+                    BookingTableSlot.table,
+                ),
+                selectinload(Booking.tables_slots).selectinload(
+                    BookingTableSlot.slot,
+                ),
+            )
+            .where(Booking.id == booking_id)
+        )
+        if not show_all:
+            query = query.where(Booking.is_active.is_(True))
+        result = await session.execute(query)
+        return result.scalars().first()
+
+    async def get_list(
+        self,
+        session: AsyncSession,
+        show_all: bool = False,
+        cafe_id: UUID | None = None,
+        user_id: UUID | None = None,
+    ) -> list[Booking]:
+        """Получает список бронирований с зависимостями."""
+        query = select(Booking).options(
+            selectinload(Booking.cafe),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.table,
+            ),
+            selectinload(Booking.tables_slots).selectinload(
+                BookingTableSlot.slot,
+            ),
+        )
+        if cafe_id:
+            query = query.where(Booking.cafe_id == cafe_id)
+        if user_id:
+            query = query.where(Booking.user_id == user_id)
+        if not show_all:
+            query = query.where(Booking.is_active.is_(True))
+        result = await session.execute(query)
+        return result.scalars().unique().all()
 
     async def create(
         self,
