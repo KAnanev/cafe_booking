@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.post(
-    "",
+    '',
     response_model=ImageUploadResponse,
     status_code=201,
 )
@@ -29,12 +29,12 @@ async def upload_image_endpoint(
         file=file,
         username=user.username,
     )
-    return {"id": image_id}
+    return {'id': image_id}
 
 
 @router.get(
-    "/{image_id}",
-    responses={200: {"content": {"image/jpeg": {}}}},
+    '/{image_id}',
+    responses={200: {'content': {'image/jpeg': {}}}},
 )
 async def get_image_endpoint(
     image_id: UUID,

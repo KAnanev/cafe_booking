@@ -16,3 +16,11 @@ class PermissionDenied(UserManagerExceptions):
 
 class UserAlreadyExists(UserManagerExceptions):
     """Исключение, когда пользователь уже существует."""
+
+
+class BookingNotFound(UserManagerExceptions):
+    """Booking or related entity not found."""
+
+
+class BookingValidationError(UserManagerExceptions):
+    """Booking validation error."""

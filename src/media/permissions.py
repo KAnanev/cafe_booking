@@ -12,6 +12,6 @@ async def can_upload_image(
     if user.role not in (Roles.MANAGER, Roles.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to upload image",
+            detail='Not enough permissions to upload image',
         )
     return user

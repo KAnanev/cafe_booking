@@ -44,10 +44,10 @@ async def upload_image(
         await db.commit()
 
         logger.info(
-            "Image uploaded",
+            'Image uploaded',
             extra={
-                "image_id": str(image_id),
-                "user": username or "SYSTEM",
+                'image_id': str(image_id),
+                'user': username or 'SYSTEM',
             },
         )
 
@@ -56,8 +56,8 @@ async def upload_image(
     except Exception as e:
         await db.rollback()
         logger.error(
-            f"Image upload failed: {str(e)}",
-            extra={"user": username or "SYSTEM"},
+            f'Image upload failed: {str(e)}',
+            extra={'user': username or 'SYSTEM'},
         )
         raise
 
@@ -72,11 +72,11 @@ async def get_image(
     if not image or not image.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image not found",
+            detail='Image not found',
         )
 
     return FileResponse(
         image.file_path,
-        media_type="image/jpeg",
-        filename=f"{image_id}.jpg",
+        media_type='image/jpeg',
+        filename=f'{image_id}.jpg',
     )
