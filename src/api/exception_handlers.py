@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 
 from core.exceptions import InvalidToken
 from managers.exceptions import (
+    BookingNotFound,
+    BookingValidationError,
     InvalidCredentials,
     PermissionDenied,
     UserAlreadyExists,
@@ -51,6 +53,26 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(BookingValidationError)
+    async def booking_validation_handler(
+        request: Request,
+        exc: BookingValidationError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(BookingNotFound)
+    async def booking_not_found_handler(
+        request: Request,
+        exc: BookingNotFound,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
             content={'detail': str(exc)},
         )
 
