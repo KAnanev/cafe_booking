@@ -9,10 +9,6 @@ from sqlalchemy.orm import selectinload
 from crud.base import CRUDBase
 from models.booking import Booking, BookingStatus
 from models.booking_table_slot import BookingTableSlot
-from models.cafe import Cafe
-from models.relations import cafe_managers
-from models.slots import Slot
-from models.table import Table
 from schemas.booking import BookingCreate, TablesSlots
 
 _BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
@@ -20,18 +16,6 @@ _BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
 
 class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
     """CRUD с валидацией для бронирований."""
-
-    async def get_manager_cafe_ids(
-        self,
-        manager_id: UUID,
-        session: AsyncSession,
-    ) -> list[UUID]:
-        """Возвращает список кафе менеджера."""
-        query = select(cafe_managers.c.cafe_id).where(
-            cafe_managers.c.user_id == manager_id,
-        )
-        result = await session.execute(query)
-        return list(result.scalars().all())
 
     async def get_by_id_with_relations(
         self,
@@ -58,7 +42,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         result = await session.execute(query)
         return result.scalars().first()
 
-    async def get_list(
+    async def get_list_all(
         self,
         session: AsyncSession,
         show_all: bool = False,
@@ -87,29 +71,19 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         result = await session.execute(query)
         return result.scalars().unique().all()
 
-    async def get_cafe_by_id(
+    async def get_list_by_user(
         self,
-        cafe_id: UUID,
         session: AsyncSession,
-    ) -> Cafe | None:
-        """Получает кафе по идентификатору."""
-        return await session.get(Cafe, cafe_id)
-
-    async def get_table_by_id(
-        self,
-        table_id: UUID,
-        session: AsyncSession,
-    ) -> Table | None:
-        """Получает стол по идентификатору."""
-        return await session.get(Table, table_id)
-
-    async def get_slot_by_id(
-        self,
-        slot_id: UUID,
-        session: AsyncSession,
-    ) -> Slot | None:
-        """Получает слот по идентификатору."""
-        return await session.get(Slot, slot_id)
+        user_id: UUID,
+        show_all: bool = False,
+        cafe_id: UUID | None = None,
+    ) -> list[Booking]:
+        return await self.get_list_all(
+            session=session,
+            show_all=show_all,
+            cafe_id=cafe_id,
+            user_id=user_id,
+        )
 
     async def is_slot_taken(
         self,
