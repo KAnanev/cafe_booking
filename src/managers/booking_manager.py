@@ -129,7 +129,7 @@ class BookingManager:
             return [self._build_booking_info(booking) for booking in bookings]
         if user_id and user_id != current_user.id:
             raise PermissionDenied('Нет доступа.')
-        bookings = await booking_crud.get_list_by_user(
+        bookings = await booking_crud.get_list_all(
             session=self.session,
             show_all=show_all,
             cafe_id=cafe_id,

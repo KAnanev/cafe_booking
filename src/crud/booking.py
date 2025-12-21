@@ -71,21 +71,6 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         result = await session.execute(query)
         return result.scalars().unique().all()
 
-    async def get_list_by_user(
-        self,
-        session: AsyncSession,
-        user_id: UUID,
-        show_all: bool = False,
-        cafe_id: UUID | None = None,
-    ) -> list[Booking]:
-        """Получает список бронирований пользователя с зависимостями."""
-        return await self.get_list_all(
-            session=session,
-            show_all=show_all,
-            cafe_id=cafe_id,
-            user_id=user_id,
-        )
-
     async def is_slot_taken(
         self,
         table_id: UUID,
