@@ -23,18 +23,17 @@ class Table(TimestampMixin, ActiveMixin, Base):
 
     __table_args__ = (
         CheckConstraint(
-            f'seats_number >= {TABLE_MIN_SEATS_NUMBER}',
-            name='check_min_seats',
-        ),
-        CheckConstraint(
-            f'seats_number <= {TABLE_MAX_SEATS_NUMBER}',
-            name='check_max_seats',
+            (
+                f"seats_number BETWEEN {TABLE_MIN_SEATS_NUMBER} "
+                f"AND {TABLE_MAX_SEATS_NUMBER}"
+            ),
+            name="check_seats_number_range",
         ),
     )
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('cafes.id', ondelete='CASCADE'),
+        ForeignKey("cafes.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -48,14 +47,14 @@ class Table(TimestampMixin, ActiveMixin, Base):
         nullable=True,
     )
 
-    cafe: Mapped['Cafe'] = relationship(
-        'Cafe',
-        back_populates='tables',
-        lazy='selectin',
+    cafe: Mapped["Cafe"] = relationship(
+        "Cafe",
+        back_populates="tables",
+        lazy="selectin",
     )
-    booking_links: Mapped[list['BookingTableSlot']] = relationship(
-        'BookingTableSlot',
-        back_populates='table',
-        cascade='all, delete-orphan',
-        lazy='selectin',
+    booking_links: Mapped[list["BookingTableSlot"]] = relationship(
+        "BookingTableSlot",
+        back_populates="table",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )

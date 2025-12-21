@@ -18,24 +18,23 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
         session: AsyncSession,
         show_all: bool = False,
     ) -> Sequence[Cafe]:
-        """Получить все записи кафе из базы данных."""
-        query = select(self.model)
-        if not show_all:
-            query = query.where(self.model.is_active.is_(True))
-        result = await session.execute(query)
-        return result.scalars().all()
+        """Получить все записи кафе."""
+        return await self.get_multi(session=session, show_all=show_all)
 
     async def get_managed_cafes(
         self,
         session: AsyncSession,
         user_id: UUID,
+        show_all: bool = False,
     ) -> Sequence[Cafe]:
-        """Кафе, которыми управляет пользователь (через M2M cafe_managers)."""
+        """Кафе, которыми управляет пользователь."""
         query = (
             select(self.model)
             .options(selectinload(self.model.managers))
             .where(self.model.managers.any(id=user_id))
         )
+        query = self._apply_active_filter(query, show_all=show_all)
+
         result = await session.execute(query)
         return result.scalars().all()
 

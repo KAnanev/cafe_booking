@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String
+from sqlalchemy import String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
@@ -23,7 +23,10 @@ if TYPE_CHECKING:
 class Cafe(TimestampMixin, ActiveMixin, Base):
     """Модель кафе."""
 
-    __tablename__ = 'cafes'
+    __tablename__ = "cafes"
+    __table_args__ = (
+        UniqueConstraint("name", "address", name="uq_cafes_name_address"),
+    )
 
     name: Mapped[str] = mapped_column(
         String(CAFE_NAME_MAX_LENGTH),
@@ -46,31 +49,31 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
         nullable=True,
     )
 
-    managers: Mapped[list['User']] = relationship(
-        'User',
-        secondary='cafe_managers',
-        back_populates='cafes',
-        lazy='selectin',
+    managers: Mapped[list["User"]] = relationship(
+        "User",
+        secondary="cafe_managers",
+        back_populates="cafes",
+        lazy="selectin",
     )
 
-    tables: Mapped[list['Table']] = relationship(
-        'Table',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
-        lazy='selectin',
+    tables: Mapped[list["Table"]] = relationship(
+        "Table",
+        back_populates="cafe",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-    slots: Mapped[list['Slot']] = relationship(
-        'Slot',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
-        lazy='selectin',
+    slots: Mapped[list["Slot"]] = relationship(
+        "Slot",
+        back_populates="cafe",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
-    bookings: Mapped[list['Booking']] = relationship(
-        'Booking',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
-        lazy='selectin',
+    bookings: Mapped[list["Booking"]] = relationship(
+        "Booking",
+        back_populates="cafe",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     def __str__(self) -> str:
-        return f'{self.name} - {self.address}'
+        return f"{self.name} - {self.address}"
