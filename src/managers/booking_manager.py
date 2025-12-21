@@ -34,12 +34,14 @@ class BookingManager:
 
     async def _validate_booking_date(self, booking_date: date) -> None:
         if booking_date < date.today():
-            raise BookingValidationError('Booking date cannot be in the past.')
+            raise BookingValidationError(
+                'Нельзя бронировать на прошедшие даты.',
+            )
 
     async def _validate_cafe(self, cafe_id: UUID) -> None:
         cafe = await cafe_crud.get_by_id(obj_id=cafe_id, session=self.session)
         if cafe is None or not cafe.is_active:
-            raise BookingNotFound('Cafe not found or inactive.')
+            raise BookingNotFound('Кафе не найдено или неактивно.')
 
     async def _validate_tables_slots(
         self,
@@ -52,10 +54,10 @@ class BookingManager:
                 session=self.session,
             )
             if table is None or not table.is_active:
-                raise BookingNotFound('Table not found or inactive.')
+                raise BookingNotFound('Стол не найден или неактивен.')
             if table.cafe_id != cafe_id:
                 raise BookingValidationError(
-                    'Table does not belong to the selected cafe.',
+                    'Стол не относится к выбранному кафе.',
                 )
 
             slot = await slot_crud.get_by_id(
@@ -63,10 +65,10 @@ class BookingManager:
                 session=self.session,
             )
             if slot is None or not slot.is_active:
-                raise BookingNotFound('Slot not found or inactive.')
+                raise BookingNotFound('Слот не найден или неактивен.')
             if slot.cafe_id != cafe_id:
                 raise BookingValidationError(
-                    'Slot does not belong to the selected cafe.',
+                    'Слот не относится к выбранному кафе.',
                 )
 
     async def _ensure_slots_free(
@@ -83,7 +85,7 @@ class BookingManager:
             )
             if is_taken:
                 raise BookingValidationError(
-                    'Selected table is already booked for this slot.',
+                    'Стол уже забронирован на этот слот.',
                 )
 
     async def _get_manager_cafe_ids(self, manager_id: UUID) -> list[UUID]:
@@ -100,9 +102,9 @@ class BookingManager:
         user_id: UUID | None = None,
         current_user: User | None = None,
     ) -> list[BookingInfo]:
-        """List bookings."""
+        """Список бронирований."""
         if current_user is None:
-            raise PermissionDenied('Access denied.')
+            raise PermissionDenied('Нет доступа.')
         if current_user.role == UserRole.ADMIN:
             bookings = await booking_crud.get_list_all(
                 session=self.session,
@@ -116,7 +118,7 @@ class BookingManager:
             if not cafe_ids:
                 return []
             if cafe_id and cafe_id not in cafe_ids:
-                raise PermissionDenied('Access denied.')
+                raise PermissionDenied('Нет доступа.')
             bookings = await booking_crud.get_list_all(
                 session=self.session,
                 show_all=show_all,
@@ -126,7 +128,7 @@ class BookingManager:
             )
             return [self._build_booking_info(booking) for booking in bookings]
         if user_id and user_id != current_user.id:
-            raise PermissionDenied('Access denied.')
+            raise PermissionDenied('Нет доступа.')
         bookings = await booking_crud.get_list_by_user(
             session=self.session,
             show_all=show_all,
@@ -140,24 +142,24 @@ class BookingManager:
         booking_id: UUID,
         current_user: User | None = None,
     ) -> BookingInfo:
-        """Get booking by id."""
+        """Получить бронирование по id."""
         booking = await booking_crud.get_by_id_with_relations(
             booking_id=booking_id,
             session=self.session,
         )
         if booking is None:
-            raise BookingNotFound('Booking not found.')
+            raise BookingNotFound('Бронирование не найдено.')
         if current_user is None:
-            raise PermissionDenied('Access denied.')
+            raise PermissionDenied('Нет доступа.')
         if current_user.role == UserRole.ADMIN:
             return self._build_booking_info(booking)
         if current_user.role == UserRole.MANAGER:
             cafe_ids = await self._get_manager_cafe_ids(current_user.id)
             if booking.cafe_id not in cafe_ids:
-                raise PermissionDenied('Access denied.')
+                raise PermissionDenied('Нет доступа.')
             return self._build_booking_info(booking)
         if booking.user_id != current_user.id:
-            raise PermissionDenied('Access denied.')
+            raise PermissionDenied('Нет доступа.')
         return self._build_booking_info(booking)
 
     async def create_booking(
@@ -165,13 +167,13 @@ class BookingManager:
         booking_in: BookingCreate,
         current_user: User | None = None,
     ) -> BookingInfo:
-        """Create booking."""
+        """Создать бронирование."""
         if current_user is None:
-            raise PermissionDenied('Access denied.')
+            raise PermissionDenied('Нет доступа.')
         if current_user.role == UserRole.MANAGER:
             cafe_ids = await self._get_manager_cafe_ids(current_user.id)
             if not cafe_ids or booking_in.cafe_id not in cafe_ids:
-                raise PermissionDenied('Access denied.')
+                raise PermissionDenied('Нет доступа.')
         await self._validate_booking_date(booking_in.booking_date)
         await self._validate_cafe(booking_in.cafe_id)
         await self._validate_tables_slots(
@@ -193,7 +195,7 @@ class BookingManager:
             show_all=True,
         )
         if booking is None:
-            raise BookingNotFound('Booking not found.')
+            raise BookingNotFound('Бронирование не найдено.')
         return self._build_booking_info(booking)
 
     def _build_booking_info(self, booking: Booking) -> BookingInfo:

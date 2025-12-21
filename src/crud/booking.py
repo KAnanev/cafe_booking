@@ -78,6 +78,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
         show_all: bool = False,
         cafe_id: UUID | None = None,
     ) -> list[Booking]:
+        """Получает список бронирований пользователя с зависимостями."""
         return await self.get_list_all(
             session=session,
             show_all=show_all,
