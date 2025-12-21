@@ -11,7 +11,7 @@ from models.booking import Booking, BookingStatus
 from models.booking_table_slot import BookingTableSlot
 from schemas.booking import BookingCreate, TablesSlots
 
-_BUSY_STATUSES = (BookingStatus.BOOKING.value, BookingStatus.ACTIVE.value)
+_BUSY_STATUSES = (BookingStatus.BOOKING, BookingStatus.ACTIVE)
 
 
 class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
@@ -107,7 +107,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
             cafe_id=obj_in.cafe_id,
             guest_number=obj_in.guest_number,
             note=obj_in.note,
-            status=obj_in.status.value,
+            status=obj_in.status,
             booking_date=obj_in.booking_date,
         )
         session.add(booking)
