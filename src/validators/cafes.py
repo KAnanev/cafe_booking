@@ -22,6 +22,6 @@ async def get_cafe_or_404(
     if cafe is None:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Кафе не найдено",
+            detail='Кафе не найдено',
         )
     return cafe

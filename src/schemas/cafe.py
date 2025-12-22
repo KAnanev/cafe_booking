@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from pydantic import ConfigDict, Field
 
@@ -9,7 +10,6 @@ from core.constants import (
     DESCRIPTION_MAX_LENGTH,
     DESCRIPTION_MIN_LENGTH,
     PHONE_MAX_LENGTH,
-    UUID_LENGTH,
 )
 from schemas.base import (
     ActiveSchema,
@@ -40,10 +40,7 @@ class CafeBase(BaseSchema):
         min_length=DESCRIPTION_MIN_LENGTH,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-    photo_id: Optional[str] = Field(
-        default=None,
-        max_length=UUID_LENGTH,
-    )
+    photo_id: Optional[UUID] = None
 
 
 class CafeCreate(CafeBase):
@@ -73,10 +70,7 @@ class CafeUpdate(BaseSchema):
         min_length=DESCRIPTION_MIN_LENGTH,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-    photo_id: Optional[str] = Field(
-        default=None,
-        max_length=UUID_LENGTH,
-    )
+    photo_id: Optional[UUID] = None
     is_active: Optional[bool] = None
 
 

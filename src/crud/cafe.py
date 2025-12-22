@@ -13,14 +13,6 @@ from schemas.cafe import CafeCreate, CafeUpdate
 class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
     """CRUD для кафе."""
 
-    async def get_all(
-        self,
-        session: AsyncSession,
-        show_all: bool = False,
-    ) -> Sequence[Cafe]:
-        """Получить все записи кафе."""
-        return await self.get_multi(session=session, show_all=show_all)
-
     async def get_managed_cafes(
         self,
         session: AsyncSession,

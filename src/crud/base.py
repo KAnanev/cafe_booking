@@ -22,7 +22,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def _apply_active_filter(self, query: Select, show_all: bool) -> Select:
         """Фильтрует по is_active, если модель это поддерживает."""
-        if not show_all and hasattr(self.model, "is_active"):
+        if not show_all and hasattr(self.model, 'is_active'):
             query = query.where(self.model.is_active.is_(True))
         return query
 
@@ -66,8 +66,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             k: v for k, v in obj_in_data.items() if k in model_columns
         }
 
-        if user is not None and "user_id" in model_columns:
-            filtered_data["user_id"] = user.id
+        if user is not None and 'user_id' in model_columns:
+            filtered_data['user_id'] = user.id
 
         db_obj = self.model(**filtered_data)
         session.add(db_obj)
@@ -110,13 +110,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Искусственное удаление."""
-        if hasattr(db_obj, "is_active"):
-            setattr(db_obj, "is_active", False)
+        if hasattr(db_obj, 'is_active'):
+            setattr(db_obj, 'is_active', False)
             session.add(db_obj)
             await session.commit()
             await session.refresh(db_obj)
             return db_obj
 
         raise AttributeError(
-            f"Объект {db_obj.__class__.__name__} не поддерживает удаление.",
+            f'Объект {db_obj.__class__.__name__} не поддерживает удаление.',
         )
