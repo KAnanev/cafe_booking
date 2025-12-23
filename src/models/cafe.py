@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 
-from sqlalchemy import String
+from sqlalchemy import String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
@@ -8,7 +10,6 @@ from core.constants import (
     CAFE_NAME_MAX_LENGTH,
     DESCRIPTION_MAX_LENGTH,
     PHONE_MAX_LENGTH,
-    UUID_LENGTH,
 )
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
@@ -24,6 +25,9 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
     """Модель кафе."""
 
     __tablename__ = 'cafes'
+    __table_args__ = (
+        UniqueConstraint('name', 'address', name='uq_cafes_name_address'),
+    )
 
     name: Mapped[str] = mapped_column(
         String(CAFE_NAME_MAX_LENGTH),
@@ -41,8 +45,8 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
         String(DESCRIPTION_MAX_LENGTH),
         nullable=False,
     )
-    photo_id: Mapped[str | None] = mapped_column(
-        String(UUID_LENGTH),
+    photo_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
         nullable=True,
     )
 

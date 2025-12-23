@@ -3,13 +3,14 @@ from typing import Any, Generic, Optional, Sequence, Type, TypeVar, Union
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.selectable import Select
 
 from core.db import Base
 from models import User
 
-ModelType = TypeVar('ModelType', bound=Base)
-CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
-UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
+ModelType = TypeVar("ModelType", bound=Base)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -19,20 +20,35 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Инициализатор класса."""
         self.model = model
 
+    def _apply_active_filter(self, query: Select, show_all: bool) -> Select:
+        """Фильтрует по is_active, если модель это поддерживает."""
+        if not show_all and hasattr(self.model, 'is_active'):
+            query = query.where(self.model.is_active.is_(True))
+        return query
+
     async def get_by_id(
         self,
         obj_id: Any,
         session: AsyncSession,
+        show_all: bool = False,
     ) -> Optional[ModelType]:
         """Получает объект по его ID."""
-        db_obj = await session.execute(
-            select(self.model).where(self.model.id == obj_id),
-        )
+        query = select(self.model).where(self.model.id == obj_id)
+        query = self._apply_active_filter(query, show_all=show_all)
+
+        db_obj = await session.execute(query)
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession) -> Sequence[ModelType]:
-        """Получает список всех объектов."""
-        db_objs = await session.execute(select(self.model))
+    async def get_multi(
+        self,
+        session: AsyncSession,
+        show_all: bool = False,
+    ) -> Sequence[ModelType]:
+        """Получает список объектов."""
+        query = select(self.model)
+        query = self._apply_active_filter(query, show_all=show_all)
+
+        db_objs = await session.execute(query)
         return db_objs.scalars().all()
 
     async def create(
@@ -75,7 +91,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             update_data = obj_in.model_dump(exclude_unset=True)
 
         filtered_data = {
-            k: v for k, v in update_data.items() if k in model_columns
+            k: v
+            for k, v in update_data.items()
+            if k in model_columns and v is not None
         }
 
         for field, value in filtered_data.items():

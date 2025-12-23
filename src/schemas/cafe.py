@@ -1,3 +1,6 @@
+from typing import Optional
+from uuid import UUID
+
 from pydantic import ConfigDict, Field
 
 from core.constants import (
@@ -7,7 +10,6 @@ from core.constants import (
     DESCRIPTION_MAX_LENGTH,
     DESCRIPTION_MIN_LENGTH,
     PHONE_MAX_LENGTH,
-    UUID_LENGTH,
 )
 from schemas.base import (
     ActiveSchema,
@@ -38,10 +40,7 @@ class CafeBase(BaseSchema):
         min_length=DESCRIPTION_MIN_LENGTH,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-    photo_id: str | None = Field(
-        default=None,
-        max_length=UUID_LENGTH,
-    )
+    photo_id: Optional[UUID] = None
 
 
 class CafeCreate(CafeBase):
@@ -53,29 +52,26 @@ class CafeCreate(CafeBase):
 class CafeUpdate(BaseSchema):
     """Частичное обновление кафе."""
 
-    name: str | None = Field(
+    name: Optional[str] = Field(
         default=None,
         min_length=CAFE_NAME_MIN_LENGTH,
         max_length=CAFE_NAME_MAX_LENGTH,
     )
-    address: str | None = Field(
+    address: Optional[str] = Field(
         default=None,
         max_length=CAFE_ADDRESS_MAX_LENGTH,
     )
-    phone: str | None = Field(
+    phone: Optional[str] = Field(
         default=None,
         max_length=PHONE_MAX_LENGTH,
     )
-    description: str | None = Field(
+    description: Optional[str] = Field(
         default=None,
         min_length=DESCRIPTION_MIN_LENGTH,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-    photo_id: str | None = Field(
-        default=None,
-        max_length=UUID_LENGTH,
-    )
-    is_active: bool | None = None
+    photo_id: Optional[UUID] = None
+    is_active: Optional[bool] = None
 
 
 class CafeRead(CafeBase, UUIDIDSchema, TimestampSchema, ActiveSchema):

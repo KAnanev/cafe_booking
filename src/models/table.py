@@ -23,12 +23,11 @@ class Table(TimestampMixin, ActiveMixin, Base):
 
     __table_args__ = (
         CheckConstraint(
-            f'seats_number >= {TABLE_MIN_SEATS_NUMBER}',
-            name='check_min_seats',
-        ),
-        CheckConstraint(
-            f'seats_number <= {TABLE_MAX_SEATS_NUMBER}',
-            name='check_max_seats',
+            (
+                f'seats_number BETWEEN {TABLE_MIN_SEATS_NUMBER} '
+                f'AND {TABLE_MAX_SEATS_NUMBER}'
+            ),
+            name='check_seats_number_range',
         ),
     )
 

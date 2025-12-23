@@ -1,7 +1,7 @@
 from datetime import time
 from uuid import UUID
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.base import CRUDBase
@@ -30,9 +30,14 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         if exclude_id is not None:
             conditions.append(self.model.id != exclude_id)
 
-        query = select(self.model.id).where(and_(*conditions))
+        query = (
+            select(func.count())
+            .select_from(self.model)
+            .where(and_(*conditions))
+        )
         result = await session.execute(query)
-        return result.scalars().first() is not None
+        count_value = result.scalar_one()
+        return count_value > 0
 
     async def create(
         self,
@@ -40,16 +45,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         session: AsyncSession,
         related: dict[str, list] | None = None,
     ) -> Slot:
-        """Создать новый временной слот с проверкой на уникальность."""
-        if await self.exists_slot(
-            session=session,
-            cafe_id=obj_in.cafe_id,
-            start=obj_in.start_time,
-            end=obj_in.end_time,
-        ):
-            raise ValueError(
-                'Слот с таким временем уже существует для этого кафе',
-            )
+        """Создать новый временной слот."""
         return await super().create(obj_in=obj_in, session=session)
 
     async def update(
@@ -59,26 +55,15 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
         session: AsyncSession,
         related: dict[str, list] | None = None,
     ) -> Slot:
-        """Обновить слот с проверкой корректности данных."""
+        """Обновить слот с проверкой корректности временного интервала."""
         start = obj_in.start_time or db_obj.start_time
         end = obj_in.end_time or db_obj.end_time
-        cafe_id = obj_in.cafe_id or db_obj.cafe_id
 
         if start >= end:
             raise ValueError(
-                'Начальное время не может быть больше или равно конечному',
+                "Начальное время не может быть больше или равно конечному",
             )
 
-        if await self.exists_slot(
-            session=session,
-            cafe_id=cafe_id,
-            start=start,
-            end=end,
-            exclude_id=db_obj.id,
-        ):
-            raise ValueError(
-                'Слот с таким временем уже существует для этого кафе',
-            )
         return await super().update(
             db_obj=db_obj,
             obj_in=obj_in,

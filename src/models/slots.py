@@ -2,7 +2,7 @@ import uuid
 from datetime import time
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import CheckConstraint, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,7 +18,12 @@ if TYPE_CHECKING:
 class Slot(TimestampMixin, ActiveMixin, Base):
     """Временной слот для бронирования в кафе."""
 
-    __tablename__ = 'slots'
+    __table_args__ = (
+        CheckConstraint(
+            'end_time > start_time',
+            name='ck_slots_end_time_gt_start_time',
+        ),
+    )
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -38,6 +43,7 @@ class Slot(TimestampMixin, ActiveMixin, Base):
         back_populates='slots',
         lazy='selectin',
     )
+
     booking_links: Mapped[list['BookingTableSlot']] = relationship(
         'BookingTableSlot',
         back_populates='slot',
