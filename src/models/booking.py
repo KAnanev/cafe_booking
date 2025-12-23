@@ -1,13 +1,13 @@
-import enum
+from enum import StrEnum
 
 from sqlalchemy import (
     CheckConstraint,
     Column,
     Date,
+    Enum,
     ForeignKey,
     Integer,
     Text,
-    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -16,12 +16,12 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 
-class BookingStatus(int, enum.Enum):
+class BookingStatus(StrEnum):
     """Статусы бронирования столов."""
 
-    BOOKING = 0
-    CANCELED = 1
-    ACTIVE = 2
+    BOOKING = 'booking'
+    CANCELED = 'canceled'
+    ACTIVE = 'active'
 
 
 class Booking(TimestampMixin, ActiveMixin, Base):
@@ -42,10 +42,9 @@ class Booking(TimestampMixin, ActiveMixin, Base):
     )
     note = Column(Text, nullable=True)
     status = Column(
-        Integer,
+        Enum(BookingStatus, name='booking_status'),
         nullable=False,
-        default=BookingStatus.BOOKING.value,
-        server_default=text('0'),
+        default=BookingStatus.BOOKING,
     )
     booking_date = Column(Date, nullable=False)
 
@@ -53,5 +52,5 @@ class Booking(TimestampMixin, ActiveMixin, Base):
     tables_slots = relationship(
         'BookingTableSlot',
         back_populates='booking',
-        cascade='all, delete-orphan',
+        cascade='save-update, merge',
     )

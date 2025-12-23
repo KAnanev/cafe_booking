@@ -3,9 +3,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies.bookings import BookingAccess, get_booking_access
+from api.dependencies.users import get_current_active_user
 from core.db import get_async_session
 from managers.booking_manager import BookingManager
+from models.user import User
 from schemas.booking import BookingCreate, BookingInfo
 
 router = APIRouter()
@@ -23,7 +24,7 @@ async def list_bookings(
         description='ID пользователя для фильтрации бронирований.',
     ),
     session: AsyncSession = Depends(get_async_session),
-    access: BookingAccess = Depends(get_booking_access),
+    current_user: User = Depends(get_current_active_user),
 ) -> list[BookingInfo]:
     """Получить список бронирований."""
     manager = BookingManager(session)
@@ -31,8 +32,7 @@ async def list_bookings(
         show_all=show_all,
         cafe_id=cafe_id,
         user_id=user_id,
-        allowed_user_id=access.user_id,
-        allowed_cafe_ids=access.cafe_ids,
+        current_user=current_user,
     )
 
 
@@ -44,14 +44,13 @@ async def list_bookings(
 async def create_booking(
     booking_in: BookingCreate,
     session: AsyncSession = Depends(get_async_session),
-    access: BookingAccess = Depends(get_booking_access),
+    current_user: User = Depends(get_current_active_user),
 ) -> BookingInfo:
     """Создать бронирование стола."""
     manager = BookingManager(session)
     return await manager.create_booking(
         booking_in,
-        user_id=access.current_user.id,
-        allowed_cafe_ids=access.cafe_ids,
+        current_user=current_user,
     )
 
 
@@ -59,12 +58,11 @@ async def create_booking(
 async def get_booking(
     booking_id: UUID,
     session: AsyncSession = Depends(get_async_session),
-    access: BookingAccess = Depends(get_booking_access),
+    current_user: User = Depends(get_current_active_user),
 ) -> BookingInfo:
     """Получить бронирование по идентификатору."""
     manager = BookingManager(session)
     return await manager.get_booking(
         booking_id,
-        allowed_user_id=access.user_id,
-        allowed_cafe_ids=access.cafe_ids,
+        current_user=current_user,
     )
