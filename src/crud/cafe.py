@@ -17,7 +17,6 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
         self,
         session: AsyncSession,
         user_id: UUID,
-        show_all: bool = False,
     ) -> Sequence[Cafe]:
         """Кафе, которыми управляет пользователь."""
         query = (
@@ -25,7 +24,6 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
             .options(selectinload(self.model.managers))
             .where(self.model.managers.any(id=user_id))
         )
-        query = self._apply_active_filter(query, show_all=show_all)
 
         result = await session.execute(query)
         return result.scalars().all()
