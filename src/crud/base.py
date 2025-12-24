@@ -8,9 +8,9 @@ from sqlalchemy.sql.selectable import Select
 from core.db import Base
 from models import User
 
-ModelType = TypeVar("ModelType", bound=Base)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+ModelType = TypeVar('ModelType', bound=Base)
+CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
+UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):

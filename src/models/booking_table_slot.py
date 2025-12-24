@@ -1,8 +1,15 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
+
+if TYPE_CHECKING:
+    from models.booking import Booking
+    from models.slots import Slot
+    from models.table import Table
 
 
 class BookingTableSlot(Base):

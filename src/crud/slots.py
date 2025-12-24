@@ -61,7 +61,7 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
 
         if start >= end:
             raise ValueError(
-                "Начальное время не может быть больше или равно конечному",
+                'Начальное время не может быть больше или равно конечному',
             )
 
         return await super().update(
