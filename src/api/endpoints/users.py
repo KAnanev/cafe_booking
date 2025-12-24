@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies.managers import get_user_manager
 from api.dependencies.permissions import allow_anonymous_or_roles
 from api.dependencies.users import get_current_active_user, require_role
 from api.exceptions import UserNotFoundHTTP
@@ -23,7 +24,7 @@ router = APIRouter()
 )
 async def create_user(
     user_in: UserCreate,
-    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager),
     _: User | None = Depends(
         allow_anonymous_or_roles(
             UserRole.ADMIN,
@@ -39,8 +40,7 @@ async def create_user(
     - password
     - email или phone
     """
-    manager = UserManager(session=session)
-    user_in = await manager.create_user(user=user_in)
+    user_in = await user_manager.create_user(user=user_in)
     return UserDB.model_validate(user_in, from_attributes=True)
 
 
@@ -86,14 +86,17 @@ async def get_me(
 async def update_me(
     data: UserMeUpdate,
     user: User = Depends(get_current_active_user),
-    session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе.
 
     Только для авторизированных пользователей.
     """
-    manager = UserManager(session=session)
-    updated = await manager.update_user(actor=user, target=user, data=data)
+    updated = await user_manager.update_user(
+        actor=user,
+        target=user,
+        data=data,
+    )
     return UserDB.model_validate(updated, from_attributes=True)
 
 
@@ -131,6 +134,7 @@ async def update_user(
     data: UserAdminUpdate,
     actor: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     session: AsyncSession = Depends(get_async_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе по его ID.
 
@@ -140,8 +144,7 @@ async def update_user(
     if not target:
         raise UserNotFoundHTTP()
 
-    manager = UserManager(session=session)
-    updated = await manager.update_user(
+    updated = await user_manager.update_user(
         actor=actor,
         target=target,
         data=data,
