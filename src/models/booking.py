@@ -27,12 +27,10 @@ class BookingStatus(StrEnum):
 class Booking(TimestampMixin, ActiveMixin, Base):
     """Модель бронирования столов в кафе."""
 
-    __tablename__ = 'bookings'
-
     user_id = Column(UUID(as_uuid=True), nullable=True)
     cafe_id = Column(
         UUID(as_uuid=True),
-        ForeignKey('cafes.id', ondelete='CASCADE'),
+        ForeignKey('cafes.id'),
         nullable=False,
     )
     guest_number = Column(
@@ -52,5 +50,4 @@ class Booking(TimestampMixin, ActiveMixin, Base):
     tables_slots = relationship(
         'BookingTableSlot',
         back_populates='booking',
-        cascade='save-update, merge',
     )
