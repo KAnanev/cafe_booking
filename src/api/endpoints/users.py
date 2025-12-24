@@ -1,14 +1,10 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.managers import get_user_manager
 from api.dependencies.permissions import allow_anonymous_or_roles
 from api.dependencies.users import get_current_active_user, require_role
-from api.exceptions import UserNotFoundHTTP
-from core.db import get_async_session
-from crud.user import user_crud
 from managers.user_manager import UserManager
 from models.user import User, UserRole
 from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate
@@ -40,8 +36,8 @@ async def create_user(
     - password
     - email или phone
     """
-    user_in = await user_manager.create_user(user=user_in)
-    return UserDB.model_validate(user_in, from_attributes=True)
+    user = await user_manager.create_user(user=user_in)
+    return UserDB.model_validate(user)
 
 
 @router.get(
@@ -51,14 +47,15 @@ async def create_user(
     summary='Получение списка пользователей',
 )
 async def get_all_users(
-    session: AsyncSession = Depends(get_async_session),
     _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> list[UserDB]:
     """Возвращает информацию о всех пользователях.
 
     Только для администраторов или менеджеров.
     """
-    return await user_crud.get_multi(session=session)
+    users = await user_manager.get_multi()
+    return [UserDB.model_validate(user) for user in users]
 
 
 @router.get(
@@ -74,7 +71,7 @@ async def get_me(
 
     Только для авторизированных пользователей.
     """
-    return UserDB.model_validate(user, from_attributes=True)
+    return UserDB.model_validate(user)
 
 
 @router.patch(
@@ -97,7 +94,7 @@ async def update_me(
         target=user,
         data=data,
     )
-    return UserDB.model_validate(updated, from_attributes=True)
+    return UserDB.model_validate(updated)
 
 
 @router.get(
@@ -108,19 +105,15 @@ async def update_me(
 )
 async def get_user(
     user_id: UUID,
-    session: AsyncSession = Depends(get_async_session),
     _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает информацию о пользователе по его ID.
 
     Только для администраторов или менеджеров.
     """
-    user = await user_crud.get_by_id(session=session, obj_id=user_id)
-
-    if not user:
-        raise UserNotFoundHTTP()
-
-    return UserDB.model_validate(user, from_attributes=True)
+    user = await user_manager.get_by_id(user_id)
+    return UserDB.model_validate(user)
 
 
 @router.patch(
@@ -133,20 +126,16 @@ async def update_user(
     user_id: UUID,
     data: UserAdminUpdate,
     actor: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
-    session: AsyncSession = Depends(get_async_session),
     user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе по его ID.
 
     Только для администраторов или менеджеров.
     """
-    target = await user_crud.get_by_id(session=session, obj_id=user_id)
-    if not target:
-        raise UserNotFoundHTTP()
-
+    target = await user_manager.get_by_id(user_id)
     updated = await user_manager.update_user(
         actor=actor,
         target=target,
         data=data,
     )
-    return UserDB.model_validate(updated, from_attributes=True)
+    return UserDB.model_validate(updated)
