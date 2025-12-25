@@ -30,4 +30,3 @@ pre-commit==4.2.0
 
 # --- Logging ---
 loguru==0.7.3
-

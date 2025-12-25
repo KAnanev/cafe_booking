@@ -27,15 +27,22 @@ class UserManager:
         """Инициализирует менеджер сессией базы данных."""
         self.session = session
 
-    async def get_by_id(self, user_id: UUID) -> User:
-        """Возвращает пользователя по id."""
-        user = await user_crud.get_by_id(
+    async def _fetch_by_id(self, user_id: UUID) -> User | None:
+        return await user_crud.get_by_id(
             session=self.session,
             obj_id=user_id,
         )
+
+    async def get_by_id(self, user_id: UUID) -> User:
+        """Возвращает пользователя по id."""
+        user = await self._fetch_by_id(user_id)
         if not user:
             raise UserNotFound()
         return user
+
+    async def get_by_id_or_none(self, user_id: UUID) -> User | None:
+        """Возвращает пользователя или None."""
+        return await self._fetch_by_id(user_id)
 
     async def get_multi(self) -> list[User]:
         """Возвращает список всех пользователей."""

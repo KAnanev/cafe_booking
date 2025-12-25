@@ -2,11 +2,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
+from api.dependencies.auth import (
+    require_admin_or_manager,
+    require_anonymous_or_admin_or_manager,
+    require_auth,
+)
 from api.dependencies.managers import get_user_manager
-from api.dependencies.permissions import allow_anonymous_or_roles
-from api.dependencies.users import get_current_active_user, require_role
 from managers.user_manager import UserManager
-from models.user import User, UserRole
+from models.user import User
 from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate
 
 router = APIRouter()
@@ -20,13 +23,8 @@ router = APIRouter()
 )
 async def create_user(
     user_in: UserCreate,
+    _: User | None = require_anonymous_or_admin_or_manager,
     user_manager: UserManager = Depends(get_user_manager),
-    _: User | None = Depends(
-        allow_anonymous_or_roles(
-            UserRole.ADMIN,
-            UserRole.MANAGER,
-        ),
-    ),
 ) -> UserDB:
     """Создает нового пользователя с указанными данными.
 
@@ -47,7 +45,7 @@ async def create_user(
     summary='Получение списка пользователей',
 )
 async def get_all_users(
-    _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = require_admin_or_manager,
     user_manager: UserManager = Depends(get_user_manager),
 ) -> list[UserDB]:
     """Возвращает информацию о всех пользователях.
@@ -65,7 +63,7 @@ async def get_all_users(
     summary='Получение информации о текущем пользователе',
 )
 async def get_me(
-    user: User = Depends(get_current_active_user),
+    user: User = require_auth,
 ) -> UserDB:
     """Возвращает информацию о текущем пользователе.
 
@@ -82,7 +80,7 @@ async def get_me(
 )
 async def update_me(
     data: UserMeUpdate,
-    user: User = Depends(get_current_active_user),
+    user: User = require_auth,
     user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе.
@@ -105,7 +103,7 @@ async def update_me(
 )
 async def get_user(
     user_id: UUID,
-    _: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = require_admin_or_manager,
     user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает информацию о пользователе по его ID.
@@ -125,7 +123,7 @@ async def get_user(
 async def update_user(
     user_id: UUID,
     data: UserAdminUpdate,
-    actor: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
+    actor: User = require_admin_or_manager,
     user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Возвращает обновленную информацию о пользователе по его ID.
