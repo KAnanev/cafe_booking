@@ -6,6 +6,7 @@ from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
 from core.config import settings
+from core.constants import JWT_LIFETIME_SECONDS
 from core.exceptions import InvalidToken
 
 password_hash = PasswordHash.recommended()
@@ -47,7 +48,7 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(
     user_id: UUID,
-    expires_delta: timedelta | None = None,
+    user_session_id: UUID,
 ) -> str:
     """Создаёт JWT access-токен.
 
@@ -56,16 +57,13 @@ def create_access_token(
     """
     now = datetime.now(timezone.utc)
 
-    expire = (
-        now + expires_delta
-        if expires_delta
-        else now + timedelta(minutes=settings.access_token_expire_minutes)
-    )
-
     payload = {
         'sub': str(user_id),
-        'iat': now,
-        'exp': expire,
+        'iat': int(now.timestamp()),
+        'exp': int(
+            (now + timedelta(seconds=JWT_LIFETIME_SECONDS)).timestamp(),
+        ),
+        'sid': str(user_session_id),
     }
 
     return jwt.encode(
