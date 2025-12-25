@@ -1,11 +1,16 @@
 from typing import Union
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import ADMIN_ONLY_USER_UPDATE_FIELDS
 from core.security import get_password_hash
 from crud.user import user_crud
-from managers.exceptions import PermissionDenied, UserAlreadyExists
+from managers.exceptions import (
+    PermissionDenied,
+    UserAlreadyExists,
+    UserNotFound,
+)
 from models.user import User, UserRole
 from schemas.user import (
     UserAdminUpdate,
@@ -21,6 +26,27 @@ class UserManager:
     def __init__(self, session: AsyncSession) -> None:
         """Инициализирует менеджер сессией базы данных."""
         self.session = session
+
+    async def _fetch_by_id(self, user_id: UUID) -> User | None:
+        return await user_crud.get_by_id(
+            session=self.session,
+            obj_id=user_id,
+        )
+
+    async def get_by_id(self, user_id: UUID) -> User:
+        """Возвращает пользователя по id."""
+        user = await self._fetch_by_id(user_id)
+        if not user:
+            raise UserNotFound()
+        return user
+
+    async def get_by_id_or_none(self, user_id: UUID) -> User | None:
+        """Возвращает пользователя или None."""
+        return await self._fetch_by_id(user_id)
+
+    async def get_multi(self) -> list[User]:
+        """Возвращает список всех пользователей."""
+        return await user_crud.get_multi(session=self.session)
 
     async def _create_user(
         self,

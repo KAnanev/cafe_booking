@@ -10,6 +10,10 @@ class UserInactive(UserManagerExceptions):
     """Исключение, когда пользователь неактивен."""
 
 
+class UserNotFound(UserManagerExceptions):
+    """Исключение, когда пользователь не найден."""
+
+
 class PermissionDenied(UserManagerExceptions):
     """Исключение, когда в доступе отказано."""
 
