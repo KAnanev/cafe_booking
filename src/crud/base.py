@@ -45,7 +45,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj_in: CreateSchemaType,
         session: AsyncSession,
         user: Optional[User] = None,
-        commit: bool = True,
     ) -> ModelType:
         """Создаёт новый объект в базе данных."""
         model_columns = set(inspect(self.model).columns.keys())
@@ -59,10 +58,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             filtered_data['user_id'] = user.id
 
         db_obj = self.model(**filtered_data)
+
         session.add(db_obj)
-        if commit:
-            await session.commit()
-            await session.refresh(db_obj)
+        await session.flush()
+        await session.refresh(db_obj)
         return db_obj
 
     async def update(
@@ -86,8 +85,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         for field, value in filtered_data.items():
             setattr(db_obj, field, value)
 
-        session.add(db_obj)
-        await session.commit()
+        await session.flush()
         await session.refresh(db_obj)
         return db_obj
 
@@ -97,11 +95,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
     ) -> ModelType:
         """Искусственное удаление."""
-        if hasattr(db_obj, 'is_active'):
-            setattr(db_obj, 'is_active', False)
+        if 'is_active' in inspect(db_obj.__class__).columns:
+            db_obj.is_active = False
             session.add(db_obj)
-            await session.commit()
-            await session.refresh(db_obj)
+            await session.flush()
             return db_obj
 
         raise AttributeError(
