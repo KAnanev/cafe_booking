@@ -19,7 +19,8 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from .cafe import Cafe
+    from models.cafe import Cafe
+    from models.user_session import UserSession
 
 
 class UserRole(StrEnum):
@@ -33,7 +34,6 @@ class UserRole(StrEnum):
 class User(TimestampMixin, ActiveMixin, Base):
     """Модель пользователя."""
 
-    __tablename__ = 'users'
     __table_args__ = (
         CheckConstraint(
             'email IS NOT NULL OR phone IS NOT NULL',
@@ -84,6 +84,10 @@ class User(TimestampMixin, ActiveMixin, Base):
         Boolean,
         default=False,
         nullable=False,
+    )
+
+    sessions: Mapped[list['UserSession']] = relationship(
+        back_populates='user',
     )
 
     cafes: Mapped[list['Cafe']] = relationship(

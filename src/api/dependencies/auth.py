@@ -3,10 +3,15 @@ from typing import Awaitable, Callable
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from api.dependencies.managers import get_auth_manager, get_user_manager
+from api.dependencies.managers import (
+    get_auth_manager,
+    get_session_manager,
+    get_user_manager,
+)
 from core.exceptions import InvalidToken
 from core.security import decode_access_token
 from managers.auth_manager import AuthManager
+from managers.session_manager import SessionManager
 from managers.user_manager import UserManager
 from models import User
 from models.user import UserRole
@@ -16,18 +21,20 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 async def get_optional_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    manager: UserManager = Depends(get_user_manager),
+    user_manager: UserManager = Depends(get_user_manager),
+    session_manager: SessionManager = Depends(get_session_manager),
 ) -> User | None:
     """Возвращает текущего пользователя или None, Анонима."""
     if not credentials:
         return None
 
     try:
-        user_id = decode_access_token(credentials.credentials)
+        user_id, user_session_id = decode_access_token(credentials.credentials)
+        await session_manager.validate_touch(user_session_id)
+        return await user_manager.get_by_id_or_none(user_id)
+
     except InvalidToken:
         return None
-
-    return await manager.get_by_id_or_none(user_id)
 
 
 def require_role(
