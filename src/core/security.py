@@ -6,6 +6,7 @@ from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
 from core.config import settings
+from core.constants import ACCESS_TOKEN_TTL
 from core.exceptions import InvalidToken
 
 password_hash = PasswordHash.recommended()
@@ -47,7 +48,7 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(
     user_id: UUID,
-    expires_delta: timedelta | None = None,
+    user_session_id: UUID,
 ) -> str:
     """Создаёт JWT access-токен.
 
@@ -56,16 +57,13 @@ def create_access_token(
     """
     now = datetime.now(timezone.utc)
 
-    expire = (
-        now + expires_delta
-        if expires_delta
-        else now + timedelta(minutes=settings.access_token_expire_minutes)
-    )
-
     payload = {
         'sub': str(user_id),
-        'iat': now,
-        'exp': expire,
+        'iat': int(now.timestamp()),
+        'exp': int(
+            (now + timedelta(seconds=ACCESS_TOKEN_TTL)).timestamp(),
+        ),
+        'sid': str(user_session_id),
     }
 
     return jwt.encode(
@@ -75,7 +73,7 @@ def create_access_token(
     )
 
 
-def decode_access_token(token: str) -> UUID:
+def decode_access_token(token: str) -> tuple[UUID, UUID]:
     """Декодирует и валидирует JWT access-токен.
 
     Проверяет:
@@ -91,10 +89,11 @@ def decode_access_token(token: str) -> UUID:
         )
 
         user_id_str = payload.get('sub')
-        if not user_id_str:
+        user_session_id = payload.get('sid')
+        if not user_id_str or not user_session_id:
             raise InvalidToken
 
-        return UUID(user_id_str)
+        return UUID(user_id_str), UUID(user_session_id)
 
     except (InvalidTokenError, ValueError):
         raise InvalidToken

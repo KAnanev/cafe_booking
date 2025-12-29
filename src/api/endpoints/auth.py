@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.db import get_async_session
+from api.dependencies.managers import get_auth_manager, get_session_manager
 from core.security import create_access_token
 from managers.auth_manager import AuthManager
+from managers.session_manager import SessionManager
 from schemas.auth import AuthRequest, AuthResponse
 
 router = APIRouter()
@@ -12,48 +11,26 @@ router = APIRouter()
 
 @router.post(
     '/login',
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     summary='Вход в систему',
 )
 async def login(
     data: AuthRequest,
-    session: AsyncSession = Depends(get_async_session),
+    auth_manager: AuthManager = Depends(get_auth_manager),
+    session_manager: SessionManager = Depends(get_session_manager),
 ) -> AuthResponse:
     """Возвращает токен для последующей авторизации пользователя."""
-    manager = AuthManager(session)
-
-    user = await manager.authenticate(
+    user = await auth_manager.authenticate(
         login=data.login,
         password=data.password,
     )
 
-    access_token = create_access_token(user.id)
+    user_session = await session_manager.create(user_id=user.id)
 
-    return AuthResponse(
-        access_token=access_token,
-        token_type='bearer',
+    access_token = create_access_token(
+        user_id=user.id,
+        user_session_id=user_session.id,
     )
-
-
-@router.post(
-    '/token',
-    include_in_schema=False,
-    status_code=status.HTTP_200_OK,
-    summary='Получение токена (Swagger OAuth2)',
-)
-async def swagger_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    session: AsyncSession = Depends(get_async_session),
-) -> AuthResponse:
-    """Эндпоинт для Swagger OAuth2."""
-    manager = AuthManager(session)
-
-    user = await manager.authenticate(
-        login=form_data.username,
-        password=form_data.password,
-    )
-
-    access_token = create_access_token(user.id)
 
     return AuthResponse(
         access_token=access_token,

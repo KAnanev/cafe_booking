@@ -1,7 +1,7 @@
 # src/media/permissions.py
+from api.dependencies.users import get_current_user
 from fastapi import Depends, HTTPException, status
 
-from api.dependencies.users import get_current_user
 from models.user import Roles, User
 
 

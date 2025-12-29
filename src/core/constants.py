@@ -9,7 +9,8 @@ ROLE_ADMIN = 'Admin'
 # =========================
 # Аутентификация и безопасность
 # =========================
-JWT_LIFETIME_SECONDS = 3600
+SESSION_TTL_SECONDS = 3600
+SESSION_TOUCH_THROTTLE_SECONDS = 60
 
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
@@ -93,7 +94,8 @@ __all__ = [
     'ROLE_MANAGER',
     'ROLE_ADMIN',
     # auth & security
-    'JWT_LIFETIME_SECONDS',
+    'SESSION_TTL_SECONDS',
+    'SESSION_TOUCH_THROTTLE_SECONDS',
     'PASSWORD_MIN_LENGTH',
     'PASSWORD_MAX_LENGTH',
     'PASSWORD_HASH_MIN_LENGTH',
