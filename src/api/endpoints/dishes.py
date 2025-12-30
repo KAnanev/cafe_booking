@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.permissions import is_manager_or_admin
 from api.dependencies.users import get_current_active_user
-from api.utils import build_dish_response
 from core.db import get_async_session
 from crud.dishes import dish_crud
 from models.dishes import Dish
@@ -60,7 +59,7 @@ async def get_dishes(
 async def create_dish(
     dish_in: DishCreate,
     session: AsyncSession = Depends(get_async_session),
-    _: User = Depends(is_manager_or_admin), # Требуется роль Админ/Менеджер
+    _: User = Depends(is_manager_or_admin),  # Требуется роль Админ/Менеджер
 ) -> DishRead:
     """Создать новое блюдо в системе."""
     try:
@@ -81,9 +80,9 @@ async def get_dish(
     """Получить блюдо по идентификатору."""
     dish = await _get_dish_or_404(dish_id, session)
     if not dish.is_active:
-         is_admin_or_manager = (_.role in (UserRole.MANAGER, UserRole.ADMIN))
-         if not is_admin_or_manager:
-             raise HTTPException(status.HTTP_404_NOT_FOUND, 'Блюдо не найдено')
+        is_admin_or_manager = _.role in (UserRole.MANAGER, UserRole.ADMIN)
+        if not is_admin_or_manager:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, 'Блюдо не найдено')
 
     return build_dish_response(dish)
 

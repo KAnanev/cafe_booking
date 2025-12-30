@@ -30,6 +30,4 @@ class UserSession(Base):
 
     user: Mapped[User] = relationship(back_populates='sessions')
 
-    __table_args__ = (
-        Index('ix_user_sessions_active', 'user_id'),
-    )
+    __table_args__ = (Index('ix_user_sessions_active', 'user_id'),)

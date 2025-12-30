@@ -21,10 +21,15 @@ from schemas.cafe import CafeShort
 class DishBase(BaseSchema):
     """Базовая схема для блюд."""
 
-    name: str = Field(..., min_length=DISH_NAME_MIN_LENGTH,
-                      max_length=DISH_NAME_MAX_LENGTH)
-    description: Optional[str] = Field(default=None,
-                                       max_length=DISH_DESCRIPTION_MAX_LENGTH)
+    name: str = Field(
+        ...,
+        min_length=DISH_NAME_MIN_LENGTH,
+        max_length=DISH_NAME_MAX_LENGTH,
+    )
+    description: Optional[str] = Field(
+        default=None,
+        max_length=DISH_DESCRIPTION_MAX_LENGTH,
+    )
     photo_id: Optional[str] = Field(default=None, max_length=UUID_LENGTH)
     price: float = Field(..., gt=0)
 
@@ -38,10 +43,15 @@ class DishCreate(DishBase):
 class DishUpdate(BaseSchema):
     """Схема для частичного обновления данных блюда."""
 
-    name: Optional[str] = Field(default=None, min_length=DISH_NAME_MIN_LENGTH,
-                                max_length=DISH_NAME_MAX_LENGTH)
-    description: Optional[str] = Field(default=None,
-                                       max_length=DISH_DESCRIPTION_MAX_LENGTH)
+    name: Optional[str] = Field(
+        default=None,
+        min_length=DISH_NAME_MIN_LENGTH,
+        max_length=DISH_NAME_MAX_LENGTH,
+    )
+    description: Optional[str] = Field(
+        default=None,
+        max_length=DISH_DESCRIPTION_MAX_LENGTH,
+    )
     photo_id: Optional[str] = Field(default=None, max_length=UUID_LENGTH)
     price: Optional[float] = Field(default=None, gt=0)
     cafes_id: Optional[List[UUID]] = None
