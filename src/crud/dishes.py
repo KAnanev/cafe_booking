@@ -39,8 +39,11 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         session: AsyncSession,
     ) -> Dish:
         """Обновляет существующее блюдо."""
-        update_data = obj_in if isinstance(
-            obj_in, dict) else obj_in.model_dump(exclude_unset=True)
+        update_data = (
+            obj_in
+            if isinstance(obj_in, dict)
+            else obj_in.model_dump(exclude_unset=True)
+        )
 
         # 1. Обновление полей (имитация CRUDBase.update без коммита)
         model_columns = set(inspect(self.model).columns.keys())
@@ -55,8 +58,11 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
 
         # 2. Обновление связей
         if 'cafes_id' in update_data:
-            await self._update_cafe_links(db_obj,
-                                          update_data['cafes_id'], session)
+            await self._update_cafe_links(
+                db_obj,
+                update_data['cafes_id'],
+                session,
+            )
 
         # 3. Единый коммит для полей и связей
         await session.commit()
@@ -74,7 +80,8 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
 
         if cafe_id:
             query = query.join(DishCafeLink).where(
-                DishCafeLink.cafe_id == cafe_id)
+                DishCafeLink.cafe_id == cafe_id,
+            )
 
         if not show_all:
             query = query.where(self.model.is_active.is_(True))
@@ -82,22 +89,29 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         result = await session.execute(query)
         return result.scalars().all()
 
-    async def _save_cafe_links(self, dish: Dish,
-                               cafe_ids: List[UUID],
-                               session: AsyncSession) -> None:
+    async def _save_cafe_links(
+        self,
+        dish: Dish,
+        cafe_ids: List[UUID],
+        session: AsyncSession,
+    ) -> None:
         """Создает новые связи между блюдом и кафе."""
         for cafe_id in cafe_ids:
             link = DishCafeLink(dish_id=dish.id, cafe_id=cafe_id)
             session.add(link)
 
-    async def _update_cafe_links(self, dish: Dish,
-                                 new_cafe_ids: List[UUID],
-                                 session: AsyncSession) -> None:
+    async def _update_cafe_links(
+        self,
+        dish: Dish,
+        new_cafe_ids: List[UUID],
+        session: AsyncSession,
+    ) -> None:
         """Удаляет старые связи и создает новые."""
         # 1. Удаляем старые связи
         await session.execute(
             DishCafeLink.__table__.delete().where(
-                DishCafeLink.dish_id == dish.id),
+                DishCafeLink.dish_id == dish.id,
+            ),
         )
         # 2. Создаем новые
         await self._save_cafe_links(dish, new_cafe_ids, session)

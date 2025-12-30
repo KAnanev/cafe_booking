@@ -7,7 +7,7 @@ from validators.cafes import get_cafe_or_404
 
 
 async def is_manager_or_admin(
-        user: User = Depends(get_current_active_user),
+    user: User = Depends(get_current_active_user),
 ) -> User:
     """Разрешает доступ только менеджерам и администраторам."""
     if user.role not in (UserRole.MANAGER, UserRole.ADMIN):
