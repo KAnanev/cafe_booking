@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.db import get_async_session
 from api.dependencies.media import can_upload_image
+from core.db import get_async_session
+from models.user import User
 from schemas.media import ImageUploadResponse
 from services.media import get_image, upload_image
-from models.user import User
 
 router = APIRouter()
 

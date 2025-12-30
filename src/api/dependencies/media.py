@@ -1,7 +1,7 @@
-from api.dependencies.auth import get_optional_user
 from fastapi import Depends, HTTPException, status
 
-from models.user import UserRole, User
+from api.dependencies.auth import get_optional_user
+from models.user import User, UserRole
 
 
 async def can_upload_image(

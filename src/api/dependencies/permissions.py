@@ -6,7 +6,10 @@ from models.user import User, UserRole
 from validators.cafes import get_cafe_or_404
 
 
-async def is_manager_or_admin(user: User = Depends(get_current_active_user)) -> User:
+async def is_manager_or_admin(
+        user: User = Depends(get_current_active_user),
+) -> User:
+    """Разрешает доступ только менеджерам и администраторам."""
     if user.role not in (UserRole.MANAGER, UserRole.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

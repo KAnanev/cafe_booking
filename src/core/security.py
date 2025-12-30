@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
-import uuid
 
 import jwt
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
-from core.config import settings
 from core.config import settings
 from core.exceptions import InvalidToken
 
@@ -59,8 +57,6 @@ def create_access_token(
     now = datetime.now(timezone.utc)
     ttl_seconds = int(settings.access_token_expire_minutes * 60)
 
-    # If no session id provided (tests may call with single arg), create a random one
-    # Ensure string form for payload
     user_id_str = str(user_id)
 
     payload = {
@@ -69,7 +65,6 @@ def create_access_token(
         'exp': int((now + timedelta(seconds=ttl_seconds)).timestamp()),
     }
 
-    # Include session id only if provided (tests create tokens without DB session)
     if user_session_id is not None:
         payload['sid'] = str(user_session_id)
 

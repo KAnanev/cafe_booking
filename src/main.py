@@ -11,8 +11,6 @@ from core.db import AsyncSessionLocal
 from core.init_db import create_first_superuser
 from core.logging import LoggingMiddleware, setup_logging
 
-
-
 setup_logging()
 
 
