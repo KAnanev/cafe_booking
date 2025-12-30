@@ -16,7 +16,7 @@ cafe_managers = Table(
     Column(
         'user_id',
         UUID(as_uuid=True),
-        ForeignKey('users.id', ondelete='RESTRICT'),
+        ForeignKey('user.id', ondelete='RESTRICT'),
         primary_key=True,
         nullable=False,
     ),

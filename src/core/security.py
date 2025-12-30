@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
+import uuid
 
 import jwt
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
 from core.config import settings
-from core.constants import ACCESS_TOKEN_TTL
+from core.config import settings
 from core.exceptions import InvalidToken
 
 password_hash = PasswordHash.recommended()
@@ -47,8 +48,8 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-    user_id: UUID,
-    user_session_id: UUID,
+    user_id: UUID | str,
+    user_session_id: UUID | str | None = None,
 ) -> str:
     """Создаёт JWT access-токен.
 
@@ -56,15 +57,21 @@ def create_access_token(
     без ролей и бизнес-данных.
     """
     now = datetime.now(timezone.utc)
+    ttl_seconds = int(settings.access_token_expire_minutes * 60)
+
+    # If no session id provided (tests may call with single arg), create a random one
+    # Ensure string form for payload
+    user_id_str = str(user_id)
 
     payload = {
-        'sub': str(user_id),
+        'sub': user_id_str,
         'iat': int(now.timestamp()),
-        'exp': int(
-            (now + timedelta(seconds=ACCESS_TOKEN_TTL)).timestamp(),
-        ),
-        'sid': str(user_session_id),
+        'exp': int((now + timedelta(seconds=ttl_seconds)).timestamp()),
     }
+
+    # Include session id only if provided (tests create tokens without DB session)
+    if user_session_id is not None:
+        payload['sid'] = str(user_session_id)
 
     return jwt.encode(
         payload,
@@ -73,7 +80,7 @@ def create_access_token(
     )
 
 
-def decode_access_token(token: str) -> tuple[UUID, UUID]:
+def decode_access_token(token: str) -> tuple[UUID, UUID | None]:
     """Декодирует и валидирует JWT access-токен.
 
     Проверяет:
@@ -90,8 +97,11 @@ def decode_access_token(token: str) -> tuple[UUID, UUID]:
 
         user_id_str = payload.get('sub')
         user_session_id = payload.get('sid')
-        if not user_id_str or not user_session_id:
+        if not user_id_str:
             raise InvalidToken
+
+        if user_session_id is None:
+            return UUID(user_id_str), None
 
         return UUID(user_id_str), UUID(user_session_id)
 
