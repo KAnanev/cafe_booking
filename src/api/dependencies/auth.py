@@ -30,7 +30,8 @@ async def get_optional_user(
 
     try:
         user_id, user_session_id = decode_access_token(credentials.credentials)
-        await session_manager.validate_touch(user_session_id)
+        if user_session_id is not None:
+            await session_manager.validate_touch(user_session_id)
         return await user_manager.get_by_id_or_none(user_id)
 
     except InvalidToken:

@@ -5,8 +5,8 @@ from fastapi import HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from media.models import Image
-from media.utils import (
+from models.media import Image
+from services.media_utils import (
     convert_to_jpg,
     generate_image_path,
     read_and_validate_size,

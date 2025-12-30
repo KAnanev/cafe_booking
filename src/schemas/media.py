@@ -1,4 +1,3 @@
-# src/media/schemas.py
 from schemas.base import UUIDIDSchema
 
 

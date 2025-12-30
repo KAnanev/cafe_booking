@@ -187,7 +187,14 @@ async def async_client(
         None,
     ]:
         async with session_factory() as session:
-            yield session
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
 
     app.dependency_overrides[get_async_session] = override_get_async_session
 
