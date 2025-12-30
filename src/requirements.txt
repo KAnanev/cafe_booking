@@ -26,3 +26,6 @@ pytest-asyncio~=1.3.0
 
 # --- Logging ---
 loguru==0.7.3
+
+# --- Images ---
+Pillow==10.4.0

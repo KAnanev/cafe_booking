@@ -1,8 +1,5 @@
-# src/media/schemas.py
-from schemas.base import UUIDIDSchema
+from schemas.media import ImageUploadResponse
 
-
-class ImageUploadResponse(UUIDIDSchema):
-    """Ответ при загрузке изображения."""
-
-    pass
+__all__ = [
+    'ImageUploadResponse',
+]
