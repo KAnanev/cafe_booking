@@ -6,5 +6,6 @@ from models import (  # noqa: F401
     Slot,
     Table,
     User,
+    UserSession,
     cafe_managers,
 )
