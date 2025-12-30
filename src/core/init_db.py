@@ -50,15 +50,13 @@ async def create_first_superuser(session: AsyncSession) -> None:
     manager = UserManager(session)
 
     try:
-        user = await manager.create_superuser(user)
+        await manager.create_superuser(user)
     except Exception:
         logger.exception(
             'Ошибка при создании суперпользователя: %s',
             settings.first_superuser_email,
         )
         raise
-
-    print(user)
 
     logger.info(
         'Суперпользователь успешно создан: %s',
