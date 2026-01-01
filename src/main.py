@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     """
     async with AsyncSessionLocal() as session:
         await create_first_superuser(session)
+        await session.commit()
     yield
 
 
