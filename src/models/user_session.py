@@ -8,11 +8,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.db import Base
 from models.user import User
 
+from .mixins import ActiveMixin, TimestampMixin
+
 if TYPE_CHECKING:
     from .user import User
 
 
-class UserSession(Base):
+class UserSession(ActiveMixin, TimestampMixin, Base):
     """Модель сессии."""
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -30,4 +32,7 @@ class UserSession(Base):
 
     user: Mapped[User] = relationship(back_populates='sessions')
 
-    __table_args__ = (Index('ix_user_sessions_active', 'user_id'),)
+    __table_args__ = (
+        Index('ix_user_sessions_user_id', 'user_id'),
+        Index('ix_user_sessions_expires_at', 'expires_at'),
+    )
