@@ -1,14 +1,15 @@
 # =========================
 # Роли пользователей
 # =========================
-ROLE_USER = 'User'
-ROLE_MANAGER = 'Manager'
-ROLE_ADMIN = 'Admin'
+ROLE_USER = 'USER'
+ROLE_MANAGER = 'MANAGER'
+ROLE_ADMIN = 'ADMIN'
 
 
 # =========================
 # Аутентификация и безопасность
 # =========================
+ACCESS_TOKEN_TTL = 3600
 SESSION_TTL_SECONDS = 3600
 SESSION_TOUCH_THROTTLE_SECONDS = 60
 
@@ -102,6 +103,7 @@ __all__ = [
     'ROLE_MANAGER',
     'ROLE_ADMIN',
     # auth & security
+    'ACCESS_TOKEN_TTL',
     'SESSION_TTL_SECONDS',
     'SESSION_TOUCH_THROTTLE_SECONDS',
     'PASSWORD_MIN_LENGTH',

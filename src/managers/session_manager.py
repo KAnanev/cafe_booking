@@ -48,7 +48,7 @@ class SessionManager:
     def _validate(self, *, user_session: UserSession, now: datetime) -> None:
         """Проверяет, что сессия не истекла."""
         if user_session.expires_at <= now:
-            raise InvalidToken
+            raise InvalidToken()
 
     async def _touch(
         self,
@@ -78,12 +78,16 @@ class SessionManager:
             session=self.session,
         )
 
-    async def validate_touch(self, user_session_id: UUID) -> UserSession:
+    async def validate_touch(
+        self,
+        user_id: UUID,
+        user_session_id: UUID,
+    ) -> UserSession:
         """Проверяет валидность сессии и продлевает её срок действия."""
         user_session = await self.get_by_id(user_session_id)
 
-        if user_session is None:
-            raise InvalidToken
+        if user_session is None or user_session.user_id != user_id:
+            raise InvalidToken()
 
         now = datetime.now(timezone.utc)
 

@@ -1,8 +1,10 @@
 import asyncio
+import datetime
 import os
 import sys
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
+from datetime import timedelta
 
 import pytest
 import pytest_asyncio
@@ -16,9 +18,11 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from core.config import Settings
+from core.constants import SESSION_TTL_SECONDS
 from core.db import Base, get_async_session
 from core.security import create_access_token
 from main import app
+from models import UserSession
 from models.user import User, UserRole
 from schemas.user import UserCreate
 
@@ -99,9 +103,23 @@ async def db_session(
 # ---------------------------------------------------------------------
 
 
-def make_token(user_id: str) -> str:
-    """Создаёт JWT access-токен для пользователя."""
-    return create_access_token(user_id)
+async def make_token(db_session: AsyncSession, user_id: uuid.UUID) -> str:
+    """Создаёт JWT access-токен для пользователя + запись UserSession."""
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    user_session = UserSession(
+        user_id=user_id,
+        last_activity=now,
+        expires_at=now + timedelta(seconds=SESSION_TTL_SECONDS),
+    )
+    db_session.add(user_session)
+    await db_session.commit()
+    await db_session.refresh(user_session)
+
+    return create_access_token(
+        user_id=user_id,
+        user_session_id=user_session.id,
+    )
 
 
 # ---------------------------------------------------------------------
@@ -240,22 +258,22 @@ async def manager_user(create_user: Callable) -> User:
     )
 
 
-@pytest.fixture
-def user_token(regular_user: User) -> str:
+@pytest_asyncio.fixture
+async def user_token(db_session: AsyncSession, regular_user: User) -> str:
     """Токен пользователя USER."""
-    return make_token(str(regular_user.id))
+    return await make_token(db_session, regular_user.id)
 
 
-@pytest.fixture
-def admin_token(admin_user: User) -> str:
+@pytest_asyncio.fixture
+async def admin_token(db_session: AsyncSession, admin_user: User) -> str:
     """Токен пользователя ADMIN."""
-    return make_token(str(admin_user.id))
+    return await make_token(db_session, admin_user.id)
 
 
-@pytest.fixture
-def manager_token(manager_user: User) -> str:
+@pytest_asyncio.fixture
+async def manager_token(db_session: AsyncSession, manager_user: User) -> str:
     """Токен пользователя MANAGER."""
-    return make_token(str(manager_user.id))
+    return await make_token(db_session, manager_user.id)
 
 
 # ---------------------------------------------------------------------

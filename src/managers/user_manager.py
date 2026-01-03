@@ -128,6 +128,11 @@ class UserManager:
         """Обновляет поля пользователя."""
         self._check_update_permissions(actor, target, data)
 
+        update_data = data.model_dump(exclude_unset=True)
+        password = update_data.pop('password', None)
+        if password is not None:
+            update_data['hashed_password'] = get_password_hash(password)
+
         return await user_crud.update(
             db_obj=target,
             obj_in=data,
