@@ -40,7 +40,6 @@ class Slot(TimestampMixin, ActiveMixin, Base):
 
     cafe: Mapped['Cafe'] = relationship(
         'Cafe',
-        back_populates='slots',
         lazy='selectin',
     )
 

@@ -46,7 +46,7 @@ class Booking(TimestampMixin, ActiveMixin, Base):
     )
     booking_date = Column(Date, nullable=False)
 
-    cafe = relationship('Cafe', back_populates='bookings')
+    cafe = relationship('Cafe', lazy='selectin')
     tables_slots = relationship(
         'BookingTableSlot',
         back_populates='booking',

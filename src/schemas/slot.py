@@ -53,8 +53,6 @@ class SlotBase(BaseSchema):
 class SlotCreate(SlotBase):
     """Создание слота."""
 
-    cafe_id: UUID
-
 
 class SlotUpdate(BaseSchema):
     """Частичное обновление слота."""

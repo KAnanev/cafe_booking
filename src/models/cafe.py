@@ -15,9 +15,6 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from models.booking import Booking
-    from models.slots import Slot
-    from models.table import Table
     from models.user import User
 
 
@@ -54,25 +51,6 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
         'User',
         secondary='cafe_managers',
         back_populates='cafes',
-        lazy='selectin',
-    )
-
-    tables: Mapped[list['Table']] = relationship(
-        'Table',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
-        lazy='selectin',
-    )
-    slots: Mapped[list['Slot']] = relationship(
-        'Slot',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
-        lazy='selectin',
-    )
-    bookings: Mapped[list['Booking']] = relationship(
-        'Booking',
-        back_populates='cafe',
-        cascade='all, delete-orphan',
         lazy='selectin',
     )
 

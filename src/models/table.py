@@ -49,7 +49,6 @@ class Table(TimestampMixin, ActiveMixin, Base):
 
     cafe: Mapped['Cafe'] = relationship(
         'Cafe',
-        back_populates='tables',
         lazy='selectin',
     )
     booking_links: Mapped[list['BookingTableSlot']] = relationship(
