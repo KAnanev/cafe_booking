@@ -2,7 +2,13 @@ import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, ForeignKey, Numeric, String
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +22,10 @@ if TYPE_CHECKING:
 
 class DishCafeLink(TimestampMixin, ActiveMixin, Base):
     """Связующая таблица (Many-to-Many) между блюдами и кафе."""
+
+    __table_args__ = (
+        UniqueConstraint('dish_id', 'cafe_id', name='uq_dish_cafe'),
+    )
 
     dish_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -37,7 +47,6 @@ class DishCafeLink(TimestampMixin, ActiveMixin, Base):
     )
     cafe: Mapped['Cafe'] = relationship(
         'Cafe',
-        back_populates='dish_links',
         lazy='selectin',
     )
 

@@ -5,7 +5,7 @@ from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.base import CRUDBase
-from models.dishes import Dish, DishCafeLink
+from models.dish import Dish, DishCafeLink
 from schemas.dishes import DishCreate, DishUpdate
 
 
