@@ -80,5 +80,6 @@ class Booking(TimestampMixin, ActiveMixin, Base):
 
     tables_slots: Mapped[list['BookingTableSlot']] = relationship(
         'BookingTableSlot',
+        back_populates='booking',
         lazy='selectin',
     )

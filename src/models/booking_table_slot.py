@@ -44,6 +44,10 @@ class BookingTableSlot(Base):
         index=True,
     )
 
-    booking: Mapped['Booking'] = relationship(lazy='selectin')
+    booking: Mapped['Booking'] = relationship(
+        'Booking',
+        lazy='selectin',
+        back_populates='tables_slots',
+    )
     table: Mapped['Table'] = relationship(lazy='selectin')
     slot: Mapped['Slot'] = relationship(lazy='selectin')
