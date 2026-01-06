@@ -1,8 +1,8 @@
 """project init migrations
 
-Revision ID: 2ddb158d4480
+Revision ID: 53a10fda9542
 Revises:
-Create Date: 2026-01-06 18:08:56.544832
+Create Date: 2026-01-06 18:32:02.451710
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '2ddb158d4480'
+revision: str = '53a10fda9542'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,11 +47,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('image',
-    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('file_path', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('outboxmessage',
