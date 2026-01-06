@@ -4,8 +4,8 @@ from pydantic import ConfigDict, Field
 
 from core.constants import (
     TABLE_DESCRIPTION_MAX_LENGTH,
-    TABLE_MAX_SEATS_NUMBER,
-    TABLE_MIN_SEATS_NUMBER,
+    TABLE_MAX_SEAT_NUMBER,
+    TABLE_MIN_SEAT_NUMBER,
 )
 from schemas.base import (
     ActiveSchema,
@@ -21,8 +21,8 @@ class TableBase(BaseSchema):
 
     seats_number: int = Field(
         ...,
-        ge=TABLE_MIN_SEATS_NUMBER,
-        le=TABLE_MAX_SEATS_NUMBER,
+        ge=TABLE_MIN_SEAT_NUMBER,
+        le=TABLE_MAX_SEAT_NUMBER,
     )
     description: str | None = Field(
         default=None,
@@ -42,8 +42,8 @@ class TableUpdate(BaseSchema):
     cafe_id: UUID | None = None
     seats_number: int | None = Field(
         default=None,
-        ge=TABLE_MIN_SEATS_NUMBER,
-        le=TABLE_MAX_SEATS_NUMBER,
+        ge=TABLE_MIN_SEAT_NUMBER,
+        le=TABLE_MAX_SEAT_NUMBER,
     )
     description: str | None = Field(
         default=None,

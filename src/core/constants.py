@@ -39,7 +39,7 @@ TG_ID_MAX_LENGTH = 64
 # =========================
 GT_ZERO = 0
 CHECK_USER_EMAIL_OR_PHONE = 'ck_user_email_or_phone'
-
+REMINDER_MINUTES = 30
 ADMIN_ONLY_USER_UPDATE_FIELDS = {'is_active', 'role'}
 
 
@@ -61,8 +61,8 @@ CAFE_ADDRESS_MAX_LENGTH = 200
 # =========================
 # Столы
 # =========================
-TABLE_MIN_SEATS_NUMBER = 1
-TABLE_MAX_SEATS_NUMBER = 12
+TABLE_MIN_SEAT_NUMBER = 1
+TABLE_MAX_SEAT_NUMBER = 12
 TABLE_DESCRIPTION_MAX_LENGTH = 256
 
 # =========================
@@ -78,7 +78,6 @@ UUID_LENGTH = 100
 # Общие ограничения
 # =========================
 NAME_MAX_LENGTH = 100
-UUID_LENGTH = 36
 
 
 # =========================
@@ -130,9 +129,13 @@ __all__ = [
     'CAFE_NAME_MAX_LENGTH',
     'CAFE_ADDRESS_MAX_LENGTH',
     # tables
-    'TABLE_MIN_SEATS_NUMBER',
-    'TABLE_MAX_SEATS_NUMBER',
+    'TABLE_MIN_SEAT_NUMBER',
+    'TABLE_MAX_SEAT_NUMBER',
     'TABLE_DESCRIPTION_MAX_LENGTH',
+    # dishes
+    'DISH_DESCRIPTION_MAX_LENGTH',
+    'DISH_NAME_MAX_LENGTH',
+    'DISH_NAME_MIN_LENGTH',
     # common
     'NAME_MAX_LENGTH',
     'UUID_LENGTH',

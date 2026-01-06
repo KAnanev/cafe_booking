@@ -5,7 +5,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.base import CRUDBase
-from models.slots import Slot
+from models.slot import Slot
 from schemas.slot import SlotCreate, SlotUpdate
 
 

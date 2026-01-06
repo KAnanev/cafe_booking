@@ -11,7 +11,6 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from models.booking_table_slot import BookingTableSlot
     from models.cafe import Cafe
 
 
@@ -27,7 +26,7 @@ class Slot(TimestampMixin, ActiveMixin, Base):
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('cafes.id', ondelete='CASCADE'),
+        ForeignKey('cafe.id', ondelete='RESTRICT'),
         nullable=False,
     )
     start_time: Mapped[time] = mapped_column(nullable=False)
@@ -38,15 +37,4 @@ class Slot(TimestampMixin, ActiveMixin, Base):
         default=None,
     )
 
-    cafe: Mapped['Cafe'] = relationship(
-        'Cafe',
-        back_populates='slots',
-        lazy='selectin',
-    )
-
-    booking_links: Mapped[list['BookingTableSlot']] = relationship(
-        'BookingTableSlot',
-        back_populates='slot',
-        cascade='all, delete-orphan',
-        lazy='selectin',
-    )
+    cafe: Mapped['Cafe'] = relationship('Cafe', lazy='selectin')

@@ -19,7 +19,7 @@ from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from models.cafe import Cafe
+    from models.cafe import CafeManagerLink
     from models.user_session import UserSession
 
 
@@ -87,12 +87,13 @@ class User(TimestampMixin, ActiveMixin, Base):
     )
 
     sessions: Mapped[list['UserSession']] = relationship(
+        'UserSession',
         back_populates='user',
+        lazy='selectin',
     )
 
-    cafes: Mapped[list['Cafe']] = relationship(
-        'Cafe',
-        secondary='cafe_managers',
-        back_populates='managers',
-        lazy='noload',  # Чтобы не грузилось для системных операций init_db
+    cafe_links: Mapped[list['CafeManagerLink']] = relationship(
+        'CafeManagerLink',
+        back_populates='user',
+        lazy='selectin',
     )
