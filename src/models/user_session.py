@@ -3,23 +3,25 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Index
+from sqlalchemy.dialects.postgresql.base import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
-from models.user import User
 
 from .mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from .user import User
+    from models.user import User
 
 
 class UserSession(ActiveMixin, TimestampMixin, Base):
     """Модель сессии."""
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey(f'{User.__tablename__}.id'),
+        UUID(as_uuid=True),
+        ForeignKey('user.id', ondelete='RESTRICT'),
         nullable=False,
+        index=True,
     )
     last_activity: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -30,7 +32,7 @@ class UserSession(ActiveMixin, TimestampMixin, Base):
         nullable=False,
     )
 
-    user: Mapped[User] = relationship(back_populates='sessions')
+    user: Mapped['User'] = relationship(back_populates='sessions')
 
     __table_args__ = (
         Index('ix_user_sessions_user_id', 'user_id'),

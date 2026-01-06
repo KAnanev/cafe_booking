@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Enum, Index, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Index, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -40,7 +40,7 @@ class OutboxMessage(Base):
     status: Mapped[OutboxStatus] = mapped_column(
         Enum(OutboxStatus, name='outbox_status'),
         nullable=False,
-        server_default=OutboxStatus.PENDING.value,
+        server_default=text(f"'{OutboxStatus.PENDING.value}'"),
     )
 
     attempts: Mapped[int] = mapped_column(

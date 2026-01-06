@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, func, text
+from sqlalchemy import Boolean, DateTime, func, text
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 def utcnow() -> datetime:
@@ -11,13 +12,13 @@ def utcnow() -> datetime:
 class TimestampMixin:
     """Миксин для временных меток."""
 
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=utcnow,
         server_default=func.now(),
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=utcnow,
@@ -29,7 +30,7 @@ class TimestampMixin:
 class ActiveMixin:
     """Миксин для active."""
 
-    is_active = Column(
+    is_active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=True,
