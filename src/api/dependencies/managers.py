@@ -2,6 +2,7 @@ from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import get_async_session
+from crud.cafe import cafe_crud
 from managers.auth_manager import AuthManager
 from managers.cafe_manager import CafeManager
 from managers.session_manager import SessionManager
@@ -35,7 +36,7 @@ def get_cafe_manager(
     session: AsyncSession = Depends(get_async_session),
 ) -> CafeManager:
     """Фабрика-зависимостей для CafeManager."""
-    return CafeManager(session)
+    return CafeManager(session=session, cafe_crud=cafe_crud)
 
 
 def get_slot_manager(

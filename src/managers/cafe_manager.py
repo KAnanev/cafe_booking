@@ -1,83 +1,127 @@
-from __future__ import annotations
+import uuid
 
-from uuid import UUID
-
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.cafe import cafe_crud
+from crud.cafe import CafeCRUD
 from managers.exceptions import CafeNotFound, PermissionDenied
-from models.cafe import Cafe
-from models.user import User, UserRole
+from models import Cafe, User
+from models.user import UserRole
 from schemas.cafe import CafeCreate, CafeUpdate
 
 
 class CafeManager:
-    """Менеджер кафе: бизнес-логика и оркестрация операций с кафе."""
+    """Сервисный слой для чтения кафе с учетом ролей и видимости."""
 
-    def __init__(self, session: AsyncSession) -> None:
-        """Сохранить сессию БД для выполнения операций."""
+    def __init__(self, cafe_crud: CafeCRUD, session: AsyncSession) -> None:
+        """Инициализирует зависимости: репозиторий Cafe и сессию БД."""
+        self._cafe_crud = cafe_crud
         self._session = session
 
-    async def list_cafes(self, show_all: bool) -> list[Cafe]:
-        """Вернуть список кафе (при show_all=True включая неактивные)."""
-        query = select(Cafe)
-        if not show_all:
-            query = query.where(Cafe.is_active.is_(True))
-
-        result = await self._session.execute(query)
-        return list(result.scalars().all())
-
-    async def get_cafe(self, cafe_id: UUID) -> Cafe:
-        """Вернуть кафе по идентификатору или выбросить CafeNotFound."""
-        cafe = await cafe_crud.get_by_id(
-            obj_id=cafe_id,
-            session=self._session,
+    def _can_view_inactive(self, user: User) -> bool:
+        """Возвращает True, если пользователь может видеть неактивные кафе."""
+        return (
+            bool(getattr(user, 'is_superuser', False))
+            or user.role == UserRole.ADMIN
         )
+
+    async def list(self, *, user: User, show_all: bool = False) -> list[Cafe]:
+        """Возвращает список кафе в зависимости от роли."""
+        if user.role == UserRole.USER:
+            return await self._cafe_crud.list(self._session, only_active=True)
+
+        if user.role == UserRole.MANAGER:
+            return await self._cafe_crud.list_for_manager(
+                self._session,
+                manager_id=user.id,
+                only_active=True,
+            )
+
+        only_active = not (show_all or self._can_view_inactive(user=user))
+        return await self._cafe_crud.list(
+            self._session,
+            only_active=only_active,
+        )
+
+    async def create(self, *, user_id: uuid.UUID, obj_in: CafeCreate) -> Cafe:
+        """Создает кафе."""
+        return await self._cafe_crud.create(
+            session=self._session,
+            user_id=user_id,
+            obj_in=obj_in,
+        )
+
+    async def get(self, *, user: User, cafe_id: uuid.UUID) -> Cafe:
+        """Возвращает кафе по id с учетом прав."""
+        if user.role == UserRole.USER:
+            cafe = await self._cafe_crud.get(
+                self._session,
+                obj_id=cafe_id,
+                only_active=True,
+            )
+
+        elif user.role == UserRole.MANAGER:
+            cafe = await self._cafe_crud.get_for_manager(
+                self._session,
+                obj_id=cafe_id,
+                manager_id=user.id,
+                only_active=True,
+            )
+        else:
+            cafe = await self._cafe_crud.get(
+                self._session,
+                obj_id=cafe_id,
+                only_active=False,
+            )
+
         if cafe is None:
             raise CafeNotFound('Кафе не найдено')
         return cafe
 
-    async def create_cafe(
+    async def update(
         self,
-        cafe_in: CafeCreate,
-        current_user: User,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        obj_in: CafeUpdate,
     ) -> Cafe:
-        """Создать кафе и применить бизнес-правило назначения менеджера."""
-        if current_user.role not in (UserRole.MANAGER, UserRole.ADMIN):
-            raise PermissionDenied('Нет прав для создания кафе')
+        """Обновляет кафе. MANAGER может обновлять только своё кафе."""
+        if user.role == UserRole.MANAGER:
+            cafe = await self._cafe_crud.get_for_manager(
+                self._session,
+                obj_id=cafe_id,
+                manager_id=user.id,
+                only_active=True,
+            )
+            if cafe is None:
+                raise CafeNotFound('Кафе не найдено')
 
-        cafe = await cafe_crud.create(
-            obj_in=cafe_in,
-            session=self._session,
-        )
+            patch = (
+                obj_in
+                if isinstance(obj_in, dict)
+                else obj_in.model_dump(exclude_unset=True)
+            )
+            if 'is_active' in patch:
+                raise PermissionDenied('Менеджер не может менять is_active')
 
-        if current_user.role == UserRole.MANAGER:
-            cafe.managers.append(current_user)
-            await self._session.flush()
-            await self._session.refresh(cafe)
-        return cafe
+            return await self._cafe_crud.update(
+                self._session,
+                db_obj=cafe,
+                obj_in=patch,
+            )
 
-    async def update_cafe(
-        self,
-        cafe_id: UUID,
-        cafe_in: CafeUpdate,
-        current_user: User,
-    ) -> Cafe:
-        """Обновить кафе с проверкой прав доступа."""
-        cafe = await self.get_cafe(cafe_id=cafe_id)
+        if user.role == UserRole.ADMIN or getattr(user, 'is_superuser', False):
+            cafe = await self._cafe_crud.get(
+                self._session,
+                obj_id=cafe_id,
+                only_active=False,
+            )
+            if cafe is None:
+                raise CafeNotFound('Кафе не найдено')
 
-        if current_user.role == UserRole.ADMIN:
-            pass
-        elif current_user.role == UserRole.MANAGER:
-            manager_ids = {manager.id for manager in cafe.managers}
-            if current_user.id not in manager_ids:
-                raise PermissionDenied('Нет прав для изменения кафе')
-        else:
-            raise PermissionDenied('Нет прав для изменения кафе')
+            return await self._cafe_crud.update(
+                self._session,
+                db_obj=cafe,
+                obj_in=obj_in,
+            )
 
-        return await cafe_crud.update(
-            db_obj=cafe,
-            obj_in=cafe_in,
-            session=self._session,
-        )
+        raise PermissionDenied('Нет прав на обновление кафе')
