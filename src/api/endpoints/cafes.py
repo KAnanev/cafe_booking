@@ -1,13 +1,12 @@
 from typing import Sequence
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query, status
 
-from api.dependencies.permissions import can_manage_cafe, is_manager_or_admin
-from core.db import get_async_session
-from crud.cafe import cafe_crud
-from models.user import User, UserRole
+from api.dependencies.auth import require_admin_or_manager
+from api.dependencies.managers import get_cafe_manager
+from managers.cafe_manager import CafeManager
+from models.user import User
 from schemas.cafe import CafeCreate, CafeRead, CafeUpdate
 
 router = APIRouter()
@@ -19,14 +18,12 @@ router = APIRouter()
     summary='Получить список кафе',
 )
 async def get_cafes(
-    show_all: bool = Query(
-        False,
-        description='Показывать неактивные кафе тоже',
-    ),
-    session: AsyncSession = Depends(get_async_session),
+    show_all: bool = Query(False, description='Показывать неактивные кафе'),
+    cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> Sequence[CafeRead]:
     """Получить список всех кафе."""
-    return await cafe_crud.get_all(session=session, show_all=show_all)
+    cafes = await cafe_manager.list_cafes(show_all=show_all)
+    return [CafeRead.model_validate(cafe) for cafe in cafes]
 
 
 @router.post(
@@ -37,21 +34,15 @@ async def get_cafes(
 )
 async def create_cafe(
     cafe_in: CafeCreate,
-    session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(is_manager_or_admin),
+    current_user: User = require_admin_or_manager,
+    cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Создать кафе."""
-    cafe = await cafe_crud.create(
-        obj_in=cafe_in,
-        session=session,
-        commit=False,
+    cafe = await cafe_manager.create_cafe(
+        cafe_in=cafe_in,
+        current_user=current_user,
     )
-    await session.flush()
-    if current_user.role == UserRole.MANAGER:
-        cafe.managers.append(current_user)
-    await session.commit()
-    await session.refresh(cafe)
-    return cafe
+    return CafeRead.model_validate(cafe)
 
 
 @router.get(
@@ -61,16 +52,11 @@ async def create_cafe(
 )
 async def get_cafe(
     cafe_id: UUID,
-    session: AsyncSession = Depends(get_async_session),
+    cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Получить информацию о кафе по его идентификатору."""
-    cafe = await cafe_crud.get_by_id(obj_id=cafe_id, session=session)
-    if cafe is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Кафе не найдено',
-        )
-    return cafe
+    cafe = await cafe_manager.get_cafe(cafe_id=cafe_id)
+    return CafeRead.model_validate(cafe)
 
 
 @router.patch(
@@ -81,14 +67,13 @@ async def get_cafe(
 async def update_cafe(
     cafe_id: UUID,
     cafe_in: CafeUpdate,
-    session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(can_manage_cafe),
+    current_user: User = require_admin_or_manager,
+    cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Обновить информацию о кафе."""
-    cafe = await cafe_crud.get_by_id(obj_id=cafe_id, session=session)
-    if cafe is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Кафе не найдено',
-        )
-    return await cafe_crud.update(db_obj=cafe, obj_in=cafe_in, session=session)
+    cafe = await cafe_manager.update_cafe(
+        cafe_id=cafe_id,
+        cafe_in=cafe_in,
+        current_user=current_user,
+    )
+    return CafeRead.model_validate(cafe)

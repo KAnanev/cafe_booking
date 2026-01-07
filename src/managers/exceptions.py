@@ -28,3 +28,19 @@ class BookingNotFound(UserManagerExceptions):
 
 class BookingValidationError(UserManagerExceptions):
     """Booking validation error."""
+
+
+class SlotNotFound(UserManagerExceptions):
+    """Slot not found."""
+
+
+class SlotValidationError(UserManagerExceptions):
+    """Slot validation error."""
+
+
+class CafeNotFound(UserManagerExceptions):
+    """Cafe not found."""
+
+
+class TableNotFound(UserManagerExceptions):
+    """Table not found."""

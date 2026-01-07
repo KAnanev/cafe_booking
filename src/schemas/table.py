@@ -33,8 +33,6 @@ class TableBase(BaseSchema):
 class TableCreate(TableBase):
     """Создание стола."""
 
-    cafe_id: UUID
-
 
 class TableUpdate(BaseSchema):
     """Частичное обновление стола."""

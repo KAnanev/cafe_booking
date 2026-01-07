@@ -5,15 +5,19 @@ from core.exceptions import InvalidToken
 from managers.exceptions import (
     BookingNotFound,
     BookingValidationError,
+    CafeNotFound,
     InvalidCredentials,
     PermissionDenied,
+    SlotNotFound,
+    SlotValidationError,
+    TableNotFound,
     UserAlreadyExists,
     UserInactive,
     UserNotFound,
 )
 
 
-def register_exception_handlers(app: FastAPI) -> None:
+def register_exception_handlers(app: FastAPI) -> None:  # noqa: C901
     """Регистрирует ошибки."""
 
     @app.exception_handler(PermissionDenied)
@@ -32,7 +36,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         exc: UserAlreadyExists,
     ) -> JSONResponse:
         return JSONResponse(
-            status_code=status.HTTP_409_CONFLICT,  # лучше 409
+            status_code=status.HTTP_409_CONFLICT,
             content={'detail': str(exc)},
         )
 
@@ -77,6 +81,46 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={'detail': str(exc)},
         )
 
+    @app.exception_handler(SlotValidationError)
+    async def slot_validation_handler(
+        request: Request,
+        exc: SlotValidationError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(SlotNotFound)
+    async def slot_not_found_handler(
+        request: Request,
+        exc: SlotNotFound,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(CafeNotFound)
+    async def cafe_not_found_handler(
+        request: Request,
+        exc: CafeNotFound,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={'detail': str(exc)},
+        )
+
+    @app.exception_handler(TableNotFound)
+    async def table_not_found_handler(
+        request: Request,
+        exc: TableNotFound,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={'detail': str(exc)},
+        )
+
     @app.exception_handler(InvalidToken)
     async def invalid_token_handler(
         request: Request,
@@ -88,9 +132,9 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(UserNotFound)
-    async def invalid_token_handler(
+    async def user_not_found_handler(
         request: Request,
-        exc: InvalidToken,
+        exc: UserNotFound,
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
