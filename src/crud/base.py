@@ -1,11 +1,14 @@
-from typing import Any, Generic, Optional, Sequence, Type, TypeVar, Union
+from __future__ import annotations
+
+import uuid
+from typing import Any, Generic, Mapping, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
 from core.db import Base
-from models import User
 
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
@@ -13,52 +16,80 @@ UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    """Базовый класс для CRUD."""
+    """Базовый CRUD."""
 
     def __init__(self, model: Type[ModelType]) -> None:
-        """Инициализатор класса."""
-        self.model = model
+        """Сохраняет модель и кеширует список её колонок."""
+        self._model: Type[ModelType] = model
+        self._model_columns: set[str] = set(
+            inspect(self._model).columns.keys(),
+        )
 
-    async def get_by_id(
+    def _select_base(self) -> Select[tuple[ModelType]]:
+        """Базовый SELECT по модели."""
+        return select(self._model)
+
+    def _apply_only_active(
         self,
+        query: Select[Any],
+        *,
+        only_active: bool,
+    ) -> Select[Any]:
+        """Опционально добавляет фильтр is_active=True, если колонка есть."""
+        if only_active and hasattr(self._model, 'is_active'):
+            return query.where(self._model.is_active.is_(True))  # type: ignore[attr-defined]
+        return query
+
+    async def list(
+        self,
+        session: AsyncSession,
+        *,
+        only_active: bool = True,
+        query: Optional[Select[Any]] = None,
+    ) -> list[ModelType]:
+        """Возвращает список объектов (по умолчанию только активные)."""
+        q: Select[Any] = query or self._select_base()
+        q = self._apply_only_active(q, only_active=only_active)
+        res = await session.execute(q)
+        return list(res.scalars().all())
+
+    async def get(
+        self,
+        session: AsyncSession,
+        *,
         obj_id: Any,
-        session: AsyncSession,
+        only_active: bool = True,
+        query: Optional[Select[Any]] = None,
     ) -> Optional[ModelType]:
-        """Получает объект по его ID."""
-        query = select(self.model).where(self.model.id == obj_id)
+        """Возвращает объект по id или None (по умолчанию только активный)."""
+        if query is None:
+            if not hasattr(self._model, 'id'):
+                raise AttributeError(
+                    f"У модели {self._model.__name__} нет колонки 'id'.",
+                )
+            query = self._select_base().where(self._model.id == obj_id)  # type: ignore[attr-defined]
 
-        db_obj = await session.execute(query)
-        return db_obj.scalars().first()
-
-    async def get_multi(
-        self,
-        session: AsyncSession,
-    ) -> Sequence[ModelType]:
-        """Получает список объектов."""
-        query = select(self.model)
-
-        db_objs = await session.execute(query)
-        return db_objs.scalars().all()
+        q = self._apply_only_active(query, only_active=only_active)
+        res = await session.execute(q)
+        return res.scalars().first()
 
     async def create(
         self,
-        obj_in: CreateSchemaType,
         session: AsyncSession,
-        user: Optional[User] = None,
+        *,
+        obj_in: CreateSchemaType,
+        user_id: Optional[uuid.UUID] = None,
     ) -> ModelType:
-        """Создаёт новый объект в базе данных."""
-        model_columns = set(inspect(self.model).columns.keys())
-
-        obj_in_data = obj_in.model_dump()
-        filtered_data = {
-            k: v for k, v in obj_in_data.items() if k in model_columns
+        """Создаёт объект из схемы, фильтруя поля по колонкам модели."""
+        obj_in_data: dict[str, Any] = obj_in.model_dump(exclude_unset=True)
+        filtered_data: dict[str, Any] = {
+            k: v for k, v in obj_in_data.items() if k in self._model_columns
         }
 
-        if user is not None and 'user_id' in model_columns:
-            filtered_data['user_id'] = user.id
+        if user_id is not None and 'user_id' in self._model_columns:
+            filtered_data['user_id'] = user_id
 
-        db_obj = self.model(**filtered_data)
-
+        db_obj: ModelType = self._model(**filtered_data)  # type: ignore[arg-type]
         session.add(db_obj)
         await session.flush()
         await session.refresh(db_obj)
@@ -66,41 +97,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def update(
         self,
-        db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, dict],
         session: AsyncSession,
+        *,
+        db_obj: ModelType,
+        obj_in: Union[UpdateSchemaType, Mapping[str, Any]],
     ) -> ModelType:
-        """Обновляет существующий объект."""
-        model_columns = set(inspect(self.model).columns.keys())
-
-        if isinstance(obj_in, dict):
-            update_data = obj_in
+        """Обновляет объект данными."""
+        if isinstance(obj_in, Mapping):
+            update_data: Mapping[str, Any] = obj_in
         else:
             update_data = obj_in.model_dump(exclude_unset=True)
 
-        filtered_data = {
-            k: v for k, v in update_data.items() if k in model_columns
-        }
-
-        for field, value in filtered_data.items():
-            setattr(db_obj, field, value)
+        for field, value in update_data.items():
+            if field in self._model_columns:
+                setattr(db_obj, field, value)
 
         await session.flush()
         await session.refresh(db_obj)
         return db_obj
-
-    async def remove(
-        self,
-        db_obj: ModelType,
-        session: AsyncSession,
-    ) -> ModelType:
-        """Искусственное удаление."""
-        if 'is_active' in inspect(db_obj.__class__).columns:
-            db_obj.is_active = False
-            session.add(db_obj)
-            await session.flush()
-            return db_obj
-
-        raise AttributeError(
-            f'Объект {db_obj.__class__.__name__} не поддерживает удаление.',
-        )
