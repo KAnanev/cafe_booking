@@ -11,7 +11,7 @@ from managers.exceptions import (
     SlotNotFound,
     SlotValidationError,
 )
-from models.slots import Slot
+from models.slot import Slot
 from models.user import User, UserRole
 from schemas.slot import SlotCreate, SlotUpdate
 
@@ -65,7 +65,7 @@ class SlotManager:
                 'cafe_id в теле не совпадает с cafe_id в пути',
             )
 
-        slot_in = slot_in.model_copy(update={"cafe_id": cafe_id})
+        slot_in = slot_in.model_copy(update={'cafe_id': cafe_id})
 
         exists = await slot_crud.exists_slot(
             session=self.session,
@@ -107,7 +107,7 @@ class SlotManager:
 
         update_data = slot_in.model_dump(
             exclude_unset=True,
-            exclude={"cafe_id"},
+            exclude={'cafe_id'},
         )
 
         start = update_data.get('start_time', slot.start_time)

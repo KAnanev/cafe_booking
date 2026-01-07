@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, UniqueConstraint
@@ -8,7 +9,7 @@ from core.db import Base
 
 if TYPE_CHECKING:
     from models.booking import Booking
-    from models.slots import Slot
+    from models.slot import Slot
     from models.table import Table
 
 
@@ -24,22 +25,29 @@ class BookingTableSlot(Base):
         ),
     )
 
-    booking_id: Mapped[UUID] = mapped_column(
+    booking_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('booking.id'),
+        ForeignKey('booking.id', ondelete='RESTRICT'),
         nullable=False,
+        index=True,
     )
-    table_id: Mapped[UUID] = mapped_column(
+    table_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('table.id'),
+        ForeignKey('table.id', ondelete='RESTRICT'),
         nullable=False,
+        index=True,
     )
-    slot_id: Mapped[UUID] = mapped_column(
+    slot_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('slot.id'),
+        ForeignKey('slot.id', ondelete='RESTRICT'),
         nullable=False,
+        index=True,
     )
 
-    booking: Mapped['Booking'] = relationship(back_populates='tables_slots')
-    table: Mapped['Table'] = relationship(back_populates='booking_links')
-    slot: Mapped['Slot'] = relationship(back_populates='booking_links')
+    booking: Mapped['Booking'] = relationship(
+        'Booking',
+        lazy='selectin',
+        back_populates='tables_slots',
+    )
+    table: Mapped['Table'] = relationship(lazy='selectin')
+    slot: Mapped['Slot'] = relationship(lazy='selectin')

@@ -1,8 +1,14 @@
-# models/dishes.py
 import uuid
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, ForeignKey, Numeric, String
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,29 +20,39 @@ if TYPE_CHECKING:
     from models.cafe import Cafe
 
 
-class DishCafeLink(Base):
+class DishCafeLink(TimestampMixin, ActiveMixin, Base):
     """Связующая таблица (Many-to-Many) между блюдами и кафе."""
 
-    __tablename__ = 'dish_cafe_link'
+    __table_args__ = (
+        UniqueConstraint('dish_id', 'cafe_id', name='uq_dish_cafe'),
+    )
 
     dish_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('dishes.id', ondelete='CASCADE'),
-        primary_key=True,
+        ForeignKey('dish.id', ondelete='RESTRICT'),
+        nullable=False,
+        index=True,
     )
     cafe_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('cafes.id', ondelete='CASCADE'),
-        primary_key=True,
+        ForeignKey('cafe.id', ondelete='RESTRICT'),
+        nullable=False,
+        index=True,
     )
 
-    cafe: Mapped['Cafe'] = relationship(lazy='selectin')
+    dish: Mapped['Dish'] = relationship(
+        'Dish',
+        back_populates='cafe_links',
+        lazy='selectin',
+    )
+    cafe: Mapped['Cafe'] = relationship(
+        'Cafe',
+        lazy='selectin',
+    )
 
 
 class Dish(TimestampMixin, ActiveMixin, Base):
     """Модель блюда в меню кафе."""
-
-    __tablename__ = 'dishes'
 
     name: Mapped[str] = mapped_column(
         String(DISH_NAME_MAX_LENGTH),
@@ -46,21 +62,24 @@ class Dish(TimestampMixin, ActiveMixin, Base):
         String(DISH_DESCRIPTION_MAX_LENGTH),
         nullable=True,
     )
-    photo_id: Mapped[str | None] = mapped_column(
+    photo_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
         nullable=True,
     )
-    price: Mapped[float] = mapped_column(
+    price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
-        CheckConstraint('price >= 0'),
         nullable=False,
     )
 
-    # cafes: Mapped[List['Cafe']] = relationship(
-    #     'Cafe',
-    #     secondary=DishCafeLink.__table__,
-    #     back_populates='dishes',
-    #     lazy='selectin',
-    # )
+    cafe_links: Mapped[list['DishCafeLink']] = relationship(
+        'DishCafeLink',
+        back_populates='dish',
+        lazy='selectin',
+    )
+
+    __table_args__ = (
+        CheckConstraint('price >= 0', name='ck_dishes_price_non_negative'),
+    )
 
     def __str__(self) -> str:
         return f'{self.name} ({self.price} у.е.)'

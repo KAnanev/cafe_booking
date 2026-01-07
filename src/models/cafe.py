@@ -1,8 +1,8 @@
+import uuid
 from typing import TYPE_CHECKING
-from uuid import UUID
 
-from sqlalchemy import String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
@@ -18,10 +18,40 @@ if TYPE_CHECKING:
     from models.user import User
 
 
+class CafeManagerLink(TimestampMixin, ActiveMixin, Base):
+    """Связь User ↔ Cafe для менеджеров."""
+
+    cafe_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey('cafe.id', ondelete='RESTRICT'),
+        nullable=False,
+        index=True,
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey('user.id', ondelete='RESTRICT'),
+        nullable=False,
+        index=True,
+    )
+
+    cafe: Mapped['Cafe'] = relationship('Cafe', lazy='selectin')
+    user: Mapped['User'] = relationship('User', lazy='selectin')
+
+    __table_args__ = (
+        Index(
+            'uq_cafe_managers_active',
+            'cafe_id',
+            'user_id',
+            unique=True,
+            postgresql_where=text('is_active IS TRUE'),
+        ),
+    )
+
+
 class Cafe(TimestampMixin, ActiveMixin, Base):
     """Модель кафе."""
 
-    __tablename__ = 'cafes'
     __table_args__ = (
         UniqueConstraint('name', 'address', name='uq_cafes_name_address'),
     )
@@ -40,17 +70,16 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
     )
     description: Mapped[str] = mapped_column(
         String(DESCRIPTION_MAX_LENGTH),
-        nullable=False,
+        nullable=True,
     )
     photo_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True),
+        UUID(as_uuid=True),
         nullable=True,
     )
 
-    managers: Mapped[list['User']] = relationship(
-        'User',
-        secondary='cafe_managers',
-        back_populates='cafes',
+    manager_links: Mapped[list['CafeManagerLink']] = relationship(
+        'CafeManagerLink',
+        back_populates='cafe',
         lazy='selectin',
     )
 

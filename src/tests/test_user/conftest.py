@@ -5,9 +5,11 @@ import sys
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from dotenv import load_dotenv
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -31,6 +33,11 @@ from .fixtures.test_data import (
     DEFAULT_PASSWORD,
 )
 
+load_dotenv(
+    dotenv_path=Path(__file__).resolve().parents[1] / '.env.test',
+    override=True,
+)
+
 # ---------------------------------------------------------------------
 # Event loop policy (Windows)
 # ---------------------------------------------------------------------
@@ -49,7 +56,7 @@ def test_settings() -> Settings:
     """Настройки приложения для тестового окружения."""
     return Settings(
         postgres_host=os.getenv('POSTGRES_HOST', 'localhost'),
-        postgres_port=int(os.getenv('POSTGRES_PORT', '5432')),
+        postgres_port=int(os.getenv('POSTGRES_PORT', '5433')),
         postgres_user=os.getenv('POSTGRES_USER', 'username'),
         postgres_password=os.getenv('POSTGRES_PASSWORD', 'password'),
         postgres_db='cafe_db',

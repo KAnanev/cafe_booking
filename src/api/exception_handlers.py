@@ -27,7 +27,7 @@ def register_exception_handlers(app: FastAPI) -> None:  # noqa: C901
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content={"detail": str(exc)},
+            content={'detail': str(exc)},
         )
 
     @app.exception_handler(UserAlreadyExists)
@@ -37,7 +37,7 @@ def register_exception_handlers(app: FastAPI) -> None:  # noqa: C901
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            content={"detail": str(exc)},
+            content={'detail': str(exc)},
         )
 
     @app.exception_handler(InvalidCredentials)

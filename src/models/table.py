@@ -7,14 +7,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.constants import (
     TABLE_DESCRIPTION_MAX_LENGTH,
-    TABLE_MAX_SEATS_NUMBER,
-    TABLE_MIN_SEATS_NUMBER,
+    TABLE_MAX_SEAT_NUMBER,
+    TABLE_MIN_SEAT_NUMBER,
 )
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from models.booking_table_slot import BookingTableSlot
     from models.cafe import Cafe
 
 
@@ -24,20 +23,20 @@ class Table(TimestampMixin, ActiveMixin, Base):
     __table_args__ = (
         CheckConstraint(
             (
-                f'seats_number BETWEEN {TABLE_MIN_SEATS_NUMBER} '
-                f'AND {TABLE_MAX_SEATS_NUMBER}'
+                f'seat_number BETWEEN {TABLE_MIN_SEAT_NUMBER} '
+                f'AND {TABLE_MAX_SEAT_NUMBER}'
             ),
-            name='check_seats_number_range',
+            name='check_seat_number_range',
         ),
     )
 
     cafe_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey('cafes.id', ondelete='CASCADE'),
+        ForeignKey('cafe.id', ondelete='RESTRICT'),
         nullable=False,
         index=True,
     )
-    seats_number: Mapped[int] = mapped_column(
+    seat_number: Mapped[int] = mapped_column(
         Integer(),
         nullable=False,
         index=True,
@@ -47,13 +46,4 @@ class Table(TimestampMixin, ActiveMixin, Base):
         nullable=True,
     )
 
-    cafe: Mapped['Cafe'] = relationship(
-        'Cafe',
-        lazy='selectin',
-    )
-    booking_links: Mapped[list['BookingTableSlot']] = relationship(
-        'BookingTableSlot',
-        back_populates='table',
-        cascade='all, delete-orphan',
-        lazy='selectin',
-    )
+    cafe: Mapped['Cafe'] = relationship('Cafe', lazy='selectin')
