@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from uuid import UUID
+import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.cafe import cafe_crud
 from crud.table import table_crud
-from managers.exceptions import PermissionDenied, TableNotFound
+from managers.cafe_access import CafePermissionService
+from managers.exceptions import CafeNotFound, TableNotFound
+from models import Cafe
 from models.table import Table
 from models.user import User, UserRole
 from schemas.table import TableCreate, TableUpdate
@@ -15,78 +16,131 @@ from schemas.table import TableCreate, TableUpdate
 class TableManager:
     """Менеджер столов: бизнес-логика и оркестрация операций со столами."""
 
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self,
+        session: AsyncSession,
+        cafe_permissions: CafePermissionService,
+    ) -> None:
         """Сохранить сессию БД для выполнения операций."""
+        self._table_crud = table_crud
         self._session = session
+        self._cafe_permissions = cafe_permissions
 
-    async def _get_manager_cafe_ids(self, manager_id: UUID) -> list[UUID]:
-        cafes = await cafe_crud.get_managed_cafes(
-            session=self._session,
-            user_id=manager_id,
-        )
-        return [cafe.id for cafe in cafes]
+    async def list(
+        self,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        show_all: bool = False,
+    ) -> list[Table]:
+        """Возвращает список столов."""
+        if user.role == UserRole.USER:
+            return await self._table_crud.list_for_user(
+                self._session,
+                cafe_id=cafe_id,
+            )
 
-    async def _ensure_can_manage_cafe(self, cafe_id: UUID, user: User) -> None:
-        if user.role == UserRole.ADMIN:
-            return
+        only_active = not show_all
+
         if user.role == UserRole.MANAGER:
-            cafe_ids = await self._get_manager_cafe_ids(user.id)
-            if cafe_id in cafe_ids:
-                return
-        raise PermissionDenied('Нет доступа.')
+            return await self._table_crud.list_for_manager(
+                self._session,
+                cafe_id=cafe_id,
+                manager_id=user.id,
+                only_active=only_active,
+            )
 
-    async def list_tables(self, cafe_id: UUID, show_all: bool) -> list[Table]:
-        """Вернуть список столов указанного кафе."""
-        return await table_crud.get_by_cafe(
-            session=self._session,
+        return await self._table_crud.list_for_admin(
+            self._session,
             cafe_id=cafe_id,
-            show_all=show_all,
+            only_active=only_active,
         )
 
-    async def get_table(self, cafe_id: UUID, table_id: UUID) -> Table:
-        """Вернуть стол по id в рамках кафе или выбросить TableNotFound."""
-        table = await table_crud.get_by_cafe_and_id(
-            session=self._session,
-            cafe_id=cafe_id,
-            table_id=table_id,
-            show_all=True,
-        )
+    async def get(
+        self,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        table_id: uuid.UUID,
+    ) -> Table:
+        """Возвращает стол."""
+        if user.role == UserRole.USER:
+            table = await self._table_crud.get_for_user(
+                self._session,
+                cafe_id=cafe_id,
+                table_id=table_id,
+            )
+        elif user.role == UserRole.MANAGER:
+            table = await self._table_crud.get_for_manager(
+                self._session,
+                cafe_id=cafe_id,
+                table_id=table_id,
+                manager_id=user.id,
+                only_active=False,
+            )
+        else:
+            table = await self._table_crud.get_for_admin(
+                self._session,
+                cafe_id=cafe_id,
+                table_id=table_id,
+                only_active=False,
+            )
+
         if table is None:
             raise TableNotFound('Стол не найден')
         return table
 
-    async def create_table(
+    async def create(
         self,
-        cafe_id: UUID,
-        table_in: TableCreate,
-        current_user: User,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        obj_in: TableCreate,
     ) -> Table:
-        """Создать стол в кафе. cafe_id берётся из пути."""
-        await self._ensure_can_manage_cafe(cafe_id=cafe_id, user=current_user)
-
-        table_in = table_in.model_copy(update={'cafe_id': cafe_id})
-        return await table_crud.create(
-            obj_in=table_in,
-            session=self._session,
+        """Создает стол."""
+        cafe_exists = await self._table_crud.exists_by_id(
+            self._session,
+            model=Cafe,
+            obj_id=cafe_id,
         )
 
-    async def update_table(
-        self,
-        cafe_id: UUID,
-        table_id: UUID,
-        table_in: TableUpdate,
-        current_user: User,
-    ) -> Table:
-        """Обновить стол в рамках кафе. Изменение cafe_id запрещено."""
-        await self._ensure_can_manage_cafe(cafe_id=cafe_id, user=current_user)
+        if not cafe_exists:
+            raise CafeNotFound('Кафе не найдено')
 
-        table = await self.get_table(cafe_id=cafe_id, table_id=table_id)
-        update_data = table_in.model_dump(
-            exclude_unset=True,
-            exclude={'cafe_id'},
+        await self._cafe_permissions.check_manager_of_cafe(
+            cafe_id=cafe_id,
+            user=user,
         )
-        return await table_crud.update(
+
+        return await self._table_crud.create_for_parent(
+            self._session,
+            parent_field='cafe_id',
+            parent_id=cafe_id,
+            user_id=user.id,
+            obj_in=obj_in,
+        )
+
+    async def update(
+        self,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        table_id: uuid.UUID,
+        obj_in: TableUpdate,
+    ) -> Table:
+        """Обновляет стол."""
+        table = await self.get(user=user, cafe_id=cafe_id, table_id=table_id)
+
+        if table is None:
+            raise TableNotFound('Стол не найден')
+
+        await self._cafe_permissions.check_manager_of_cafe(
+            cafe_id=cafe_id,
+            user=user,
+        )
+
+        return await self._table_crud.update(
+            self._session,
             db_obj=table,
-            obj_in=update_data,
-            session=self._session,
+            obj_in=obj_in,
         )

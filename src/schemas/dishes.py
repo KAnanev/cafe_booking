@@ -15,7 +15,7 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
-from schemas.cafe import CafeShort
+from schemas.cafe import CafeReadShort
 
 
 class DishBase(BaseSchema):
@@ -66,6 +66,6 @@ class DishRead(UUIDIDSchema, TimestampSchema, ActiveSchema, BaseSchema):
     description: Optional[str]
     photo_id: Optional[str]
     price: float
-    cafes: List[CafeShort]
+    cafes: List[CafeReadShort]
 
     model_config = ConfigDict(from_attributes=True)

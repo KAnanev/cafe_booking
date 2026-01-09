@@ -1,83 +1,151 @@
 from __future__ import annotations
 
-from uuid import UUID
+import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.cafe import cafe_crud
-from managers.exceptions import CafeNotFound, PermissionDenied
-from models.cafe import Cafe
-from models.user import User, UserRole
+from crud.cafe import CafeCRUD
+from crud.cafe_access import cafe_access_crud
+from managers.exceptions import (
+    CafeNotFound,
+    InvalidCredentials,
+    PermissionDenied,
+)
+from models import Cafe, User
+from models.user import UserRole
 from schemas.cafe import CafeCreate, CafeUpdate
 
 
 class CafeManager:
-    """Менеджер кафе: бизнес-логика и оркестрация операций с кафе."""
+    """Сервисный слой для чтения кафе с учетом ролей и видимости."""
 
-    def __init__(self, session: AsyncSession) -> None:
-        """Сохранить сессию БД для выполнения операций."""
+    def __init__(self, cafe_crud: CafeCRUD, session: AsyncSession) -> None:
+        """Инициализирует зависимости: репозиторий Cafe и сессию БД."""
+        self._cafe_crud = cafe_crud
         self._session = session
 
-    async def list_cafes(self, show_all: bool) -> list[Cafe]:
-        """Вернуть список кафе (при show_all=True включая неактивные)."""
-        query = select(Cafe)
-        if not show_all:
-            query = query.where(Cafe.is_active.is_(True))
+    async def list_cafe(
+        self,
+        *,
+        user: User,
+        show_all: bool = False,
+    ) -> list[Cafe]:
+        """Возвращает список кафе в зависимости от роли."""
+        if user.role == UserRole.USER:
+            return await self._cafe_crud.list_for_user(self._session)
 
-        result = await self._session.execute(query)
-        return list(result.scalars().all())
+        only_active = not show_all
 
-    async def get_cafe(self, cafe_id: UUID) -> Cafe:
-        """Вернуть кафе по идентификатору или выбросить CafeNotFound."""
-        cafe = await cafe_crud.get_by_id(
-            obj_id=cafe_id,
-            session=self._session,
+        if user.role == UserRole.MANAGER:
+            return await self._cafe_crud.list_for_manager(
+                self._session,
+                manager_id=user.id,
+                only_active=only_active,
+            )
+
+        return await self._cafe_crud.list(
+            self._session,
+            only_active=only_active,
         )
+
+    async def get(self, *, user: User, cafe_id: uuid.UUID) -> Cafe:
+        """Возвращает кафе."""
+        if user.role == UserRole.USER:
+            cafe = await self._cafe_crud.get(
+                self._session,
+                obj_id=cafe_id,
+                only_active=True,
+            )
+
+        elif user.role == UserRole.MANAGER:
+            cafe = await self._cafe_crud.get_for_manager(
+                self._session,
+                obj_id=cafe_id,
+                manager_id=user.id,
+                only_active=False,
+            )
+        else:
+            cafe = await self._cafe_crud.get(
+                self._session,
+                obj_id=cafe_id,
+                only_active=False,
+            )
+
         if cafe is None:
             raise CafeNotFound('Кафе не найдено')
         return cafe
 
-    async def create_cafe(
-        self,
-        cafe_in: CafeCreate,
-        current_user: User,
-    ) -> Cafe:
-        """Создать кафе и применить бизнес-правило назначения менеджера."""
-        if current_user.role not in (UserRole.MANAGER, UserRole.ADMIN):
-            raise PermissionDenied('Нет прав для создания кафе')
-
-        cafe = await cafe_crud.create(
-            obj_in=cafe_in,
+    async def create(self, *, user_id: uuid.UUID, obj_in: CafeCreate) -> Cafe:
+        """Создает кафе."""
+        validated = await self._validate_managers_ids(
+            managers_id=obj_in.managers_id,
+        )
+        obj_in = obj_in.model_copy(update={'managers_id': validated})
+        return await self._cafe_crud.create(
             session=self._session,
+            user_id=user_id,
+            obj_in=obj_in,
         )
 
-        if current_user.role == UserRole.MANAGER:
-            cafe.managers.append(current_user)
-            await self._session.flush()
-            await self._session.refresh(cafe)
-        return cafe
-
-    async def update_cafe(
+    async def update(
         self,
-        cafe_id: UUID,
-        cafe_in: CafeUpdate,
-        current_user: User,
+        *,
+        user: User,
+        cafe_id: uuid.UUID,
+        obj_in: CafeUpdate,
     ) -> Cafe:
-        """Обновить кафе с проверкой прав доступа."""
-        cafe = await self.get_cafe(cafe_id=cafe_id)
+        """Обновляет кафе."""
+        cafe = await self.get(user=user, cafe_id=cafe_id)
 
-        if current_user.role == UserRole.ADMIN:
-            pass
-        elif current_user.role == UserRole.MANAGER:
-            manager_ids = {manager.id for manager in cafe.managers}
-            if current_user.id not in manager_ids:
-                raise PermissionDenied('Нет прав для изменения кафе')
-        else:
-            raise PermissionDenied('Нет прав для изменения кафе')
+        if cafe is None:
+            raise CafeNotFound('Кафе не найдено')
 
-        return await cafe_crud.update(
+        if user.role == UserRole.MANAGER:
+            await cafe_access_crud.assert_manager_of_cafe(
+                self._session,
+                cafe_id=cafe_id,
+                manager_id=user.id,
+                exc=PermissionDenied('Менеджер не управляет этим кафе'),
+            )
+
+            if 'is_active' in obj_in.model_fields_set:
+                raise PermissionDenied('Менеджер не может менять is_active')
+            if 'managers_id' in obj_in.model_fields_set:
+                raise PermissionDenied('Менеджер не может менять managers_id')
+
+        managers_provided = 'managers_id' in obj_in.model_fields_set
+
+        if managers_provided:
+            validated = await self._validate_managers_ids(
+                managers_id=obj_in.managers_id,
+            )
+            obj_in = obj_in.model_copy(update={'managers_id': validated})
+
+        return await self._cafe_crud.update(
+            self._session,
             db_obj=cafe,
-            obj_in=cafe_in,
-            session=self._session,
+            obj_in=obj_in,
         )
+
+    async def _validate_managers_ids(
+        self,
+        *,
+        managers_id: list[uuid.UUID],
+    ) -> list[uuid.UUID]:
+        if not managers_id:
+            return []
+
+        unique_ids: list[uuid.UUID] = list(dict.fromkeys(managers_id))
+
+        stmt = select(User.id, User.role).where(User.id.in_(unique_ids))
+        rows = (await self._session.execute(stmt)).all()
+        found = {user_id: role for user_id, role in rows}
+
+        for unique_id in unique_ids:
+            if unique_id not in found:
+                raise InvalidCredentials()
+            if found[unique_id] != UserRole.MANAGER:
+                raise InvalidCredentials()
+
+        return unique_ids

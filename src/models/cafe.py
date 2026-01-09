@@ -35,7 +35,11 @@ class CafeManagerLink(TimestampMixin, ActiveMixin, Base):
         index=True,
     )
 
-    cafe: Mapped['Cafe'] = relationship('Cafe', lazy='selectin')
+    cafe: Mapped['Cafe'] = relationship(
+        'Cafe',
+        back_populates='manager_links',
+        lazy='selectin',
+    )
     user: Mapped['User'] = relationship('User', lazy='selectin')
 
     __table_args__ = (
@@ -85,3 +89,14 @@ class Cafe(TimestampMixin, ActiveMixin, Base):
 
     def __str__(self) -> str:
         return f'{self.name} - {self.address}'
+
+    @property
+    def managers(self) -> list['User']:
+        """Возвращает менеджеров."""
+        return [
+            link.user
+            for link in self.manager_links
+            if link.is_active
+            and link.user is not None
+            and getattr(link.user, 'is_active', True)
+        ]
