@@ -1,11 +1,14 @@
 from fastapi import APIRouter
 
-from api.endpoints import auth_router, user_router
+from api.endpoints import (
+    auth_router,
+    cafes_router,
+    tables_router,
+    users_router,
+)
 from api.endpoints.bookings import router as bookings_router
-from api.endpoints.cafes import router as cafes_router
 from api.endpoints.dishes import router as dishes_router
 from api.endpoints.slots import router as slots_router
-from api.endpoints.tables import router as tables_router
 from core.constants import AUTH_TAG, USERS_TAG
 
 main_router = APIRouter()
@@ -17,7 +20,7 @@ main_router.include_router(
 )
 
 main_router.include_router(
-    user_router,
+    users_router,
     prefix='/users',
     tags=[USERS_TAG],
 )
@@ -30,7 +33,7 @@ main_router.include_router(
 
 main_router.include_router(
     tables_router,
-    prefix='/cafes/{cafe_id}/tables',
+    prefix='/cafe/{cafe_id}/tables',
     tags=['Столы'],
 )
 

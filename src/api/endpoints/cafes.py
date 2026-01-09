@@ -30,7 +30,7 @@ async def get_cafes(
         description='Показывать все кафе или нет.'
         'По умолчанию показывает все кафе',
     ),
-    user: User = require_auth,
+    user: User = Depends(require_auth),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> Sequence[CafeRead]:
     """Получение списка кафе.
@@ -50,7 +50,7 @@ async def get_cafes(
 )
 async def create_cafe(
     cafe_in: CafeCreate,
-    user: User = require_admin,
+    user: User = Depends(require_admin),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Создает новое кафе.
@@ -69,7 +69,7 @@ async def create_cafe(
 )
 async def get_cafe(
     cafe_id: UUID,
-    user: User = require_auth,
+    user: User = Depends(require_auth),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Получение информации о кафе по его ID.
@@ -90,7 +90,7 @@ async def get_cafe(
 async def update_cafe(
     cafe_id: UUID,
     cafe_in: CafeUpdate,
-    user: User = require_admin_or_manager,
+    user: User = Depends(require_admin_or_manager),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
     """Обновление информации о кафе по его ID.

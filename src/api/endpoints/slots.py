@@ -40,7 +40,7 @@ async def get_slots(
 async def create_slot(
     slot_in: SlotCreate,
     cafe: Cafe = Depends(get_cafe_or_404),
-    current_user: User = require_admin_or_manager,
+    current_user: User = Depends(require_admin_or_manager),
     slot_manager: SlotManager = Depends(get_slot_manager),
 ) -> SlotRead:
     """Создать новый временной слот для указанного кафе."""
@@ -61,7 +61,7 @@ async def update_slot(
     slot_id: UUID,
     slot_in: SlotUpdate,
     cafe: Cafe = Depends(get_cafe_or_404),
-    current_user: User = require_admin_or_manager,
+    current_user: User = Depends(require_admin_or_manager),
     slot_manager: SlotManager = Depends(get_slot_manager),
 ) -> SlotRead:
     """Обновить данные слота."""
