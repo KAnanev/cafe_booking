@@ -21,7 +21,7 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         """Обновляет существующее блюдо."""
         dish_data = obj_in.model_dump(exclude={'cafes_id'})
 
-        db_obj = self.model(**dish_data)
+        db_obj = self._model(**dish_data)
         session.add(db_obj)
         await session.flush()
         await self._save_cafe_links(db_obj, obj_in.cafes_id, session)
@@ -46,7 +46,7 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         )
 
         # 1. Обновление полей (имитация CRUDBase.update без коммита)
-        model_columns = set(inspect(self.model).columns.keys())
+        model_columns = set(inspect(self._model).columns.keys())
         filtered_data = {
             k: v for k, v in update_data.items() if k in model_columns
         }
@@ -76,7 +76,7 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
         cafe_id: UUID | None = None,
     ) -> Sequence[Dish]:
         """Получить список блюд, с опциональной фильтрацией по кафе."""
-        query = select(self.model)
+        query = select(self._model)
 
         if cafe_id:
             query = query.join(DishCafeLink).where(
@@ -84,7 +84,7 @@ class DishCRUD(CRUDBase[Dish, DishCreate, DishUpdate]):
             )
 
         if not show_all:
-            query = query.where(self.model.is_active.is_(True))
+            query = query.where(self._model.is_active.is_(True))
 
         result = await session.execute(query)
         return result.scalars().all()

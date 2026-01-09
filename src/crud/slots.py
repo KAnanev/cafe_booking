@@ -22,17 +22,17 @@ class SlotCRUD(CRUDBase[Slot, SlotCreate, SlotUpdate]):
     ) -> bool:
         """Проверить существование активного слота с указанными параметрами."""
         conditions = [
-            self.model.cafe_id == cafe_id,
-            self.model.start_time == start,
-            self.model.end_time == end,
-            self.model.is_active.is_(True),
+            self._model.cafe_id == cafe_id,
+            self._model.start_time == start,
+            self._model.end_time == end,
+            self._model.is_active.is_(True),
         ]
         if exclude_id is not None:
-            conditions.append(self.model.id != exclude_id)
+            conditions.append(self._model.id != exclude_id)
 
         query = (
             select(func.count())
-            .select_from(self.model)
+            .select_from(self._model)
             .where(and_(*conditions))
         )
         result = await session.execute(query)
