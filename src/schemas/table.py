@@ -11,7 +11,7 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
-from schemas.cafe import CafeShort
+from schemas.cafe import CafeReadShort
 
 
 class TableBase(BaseSchema):
@@ -50,7 +50,7 @@ class TableUpdate(BaseSchema):
 class TableRead(TableBase, UUIDIDSchema, TimestampSchema, ActiveSchema):
     """Полная схема стола с вложенным кафе."""
 
-    cafe: CafeShort
+    cafe: CafeReadShort
     model_config = ConfigDict(from_attributes=True)
 
 

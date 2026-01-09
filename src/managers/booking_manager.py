@@ -20,7 +20,7 @@ from schemas.booking import (
     TablesSlots,
     TablesSlotsInfo,
 )
-from schemas.cafe import CafeShort
+from schemas.cafe import CafeReadShort
 from schemas.slot import TimeSlotShort
 from schemas.table import TableShort
 
@@ -200,7 +200,7 @@ class BookingManager:
 
     def _build_booking_info(self, booking: Booking) -> BookingInfo:
         """Формирует ответ по бронированию."""
-        cafe_short = CafeShort.model_validate(
+        cafe_short = CafeReadShort.model_validate(
             booking.cafe,
             from_attributes=True,
         )
