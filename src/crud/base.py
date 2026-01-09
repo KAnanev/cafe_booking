@@ -4,7 +4,7 @@ import uuid
 from typing import Any, Generic, Mapping, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import inspect, select
+from sqlalchemy import exists, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
@@ -63,15 +63,46 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> Optional[ModelType]:
         """Возвращает объект по id или None (по умолчанию только активный)."""
         if query is None:
-            if not hasattr(self._model, 'id'):
-                raise AttributeError(
-                    f"У модели {self._model.__name__} нет колонки 'id'.",
-                )
             query = self._select_base().where(self._model.id == obj_id)  # type: ignore[attr-defined]
 
         q = self._apply_only_active(query, only_active=only_active)
         res = await session.execute(q)
         return res.scalars().first()
+
+    def _build_create_data(
+        self,
+        *,
+        obj_in: Union[CreateSchemaType, Mapping[str, Any]],
+        user_id: Optional[uuid.UUID] = None,
+        extra_data: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Готовит данные для создания: obj_in + extra_data."""
+        data = obj_in.model_dump(exclude_unset=True)
+
+        if extra_data:
+            data.update(extra_data)
+
+        filtered: dict[str, Any] = {
+            k: v for k, v in data.items() if k in self._model_columns
+        }
+
+        if user_id is not None and 'user_id' in self._model_columns:
+            filtered['user_id'] = user_id
+
+        return filtered
+
+    async def _create_from_data(
+        self,
+        session: AsyncSession,
+        *,
+        data: Mapping[str, Any],
+    ) -> ModelType:
+        """Создаёт объект."""
+        db_obj: ModelType = self._model(**dict(data))  # type: ignore[arg-type]
+        session.add(db_obj)
+        await session.flush()
+        await session.refresh(db_obj)
+        return db_obj
 
     async def create(
         self,
@@ -80,20 +111,26 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj_in: CreateSchemaType,
         user_id: Optional[uuid.UUID] = None,
     ) -> ModelType:
-        """Создаёт объект из схемы, фильтруя поля по колонкам модели."""
-        obj_in_data: dict[str, Any] = obj_in.model_dump(exclude_unset=True)
-        filtered_data: dict[str, Any] = {
-            k: v for k, v in obj_in_data.items() if k in self._model_columns
-        }
+        """Создает без связей."""
+        data = self._build_create_data(obj_in=obj_in, user_id=user_id)
+        return await self._create_from_data(session, data=data)
 
-        if user_id is not None and 'user_id' in self._model_columns:
-            filtered_data['user_id'] = user_id
-
-        db_obj: ModelType = self._model(**filtered_data)  # type: ignore[arg-type]
-        session.add(db_obj)
-        await session.flush()
-        await session.refresh(db_obj)
-        return db_obj
+    async def create_for_parent(
+        self,
+        session: AsyncSession,
+        *,
+        parent_field: str,
+        parent_id: uuid.UUID,
+        obj_in: Union[CreateSchemaType, Mapping[str, Any]],
+        user_id: Optional[uuid.UUID] = None,
+    ) -> ModelType:
+        """Создает со связями."""
+        data = self._build_create_data(
+            obj_in=obj_in,
+            user_id=user_id,
+            extra_data={parent_field: parent_id},
+        )
+        return await self._create_from_data(session, data=data)
 
     async def update(
         self,
@@ -115,3 +152,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.flush()
         await session.refresh(db_obj)
         return db_obj
+
+    async def exists_by_id(
+        self,
+        session: AsyncSession,
+        *,
+        model: Type[Base],
+        obj_id: uuid.UUID,
+    ) -> bool:
+        """Проверяет существование по id."""
+        stmt = select(exists().where(model.id == obj_id))
+        return bool(await session.scalar(stmt))
