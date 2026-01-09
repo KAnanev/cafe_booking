@@ -53,7 +53,6 @@ ManagersIdOptional = Annotated[
     Optional[list[UUID]],
     Field(
         default=None,
-        min_length=1,
         description='Полная замена списка менеджеров (если передано)',
     ),
 ]
@@ -101,12 +100,20 @@ class CafeUpdate(BaseSchema):
     is_active: Optional[bool] = None
 
 
-class CafeRead(CafeBase, UUIDIDSchema, TimestampSchema, ActiveSchema):
-    """Ответ (list/get/create/patch)."""
-
-    model_config = ConfigDict(from_attributes=True)
+class ManagersSchema(BaseSchema):
+    """Поле с менеджером."""
 
     managers: list[CafeManagerRead] = Field(default_factory=list)
+
+
+class CafeRead(
+    TimestampSchema,
+    ActiveSchema,
+    ManagersSchema,
+    CafeBase,
+    UUIDIDSchema,
+):
+    """Ответ (list/get/create/patch)."""
 
 
 class CafeReadShort(CafeBase, UUIDIDSchema):

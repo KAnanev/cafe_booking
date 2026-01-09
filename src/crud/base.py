@@ -77,7 +77,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         extra_data: Optional[Mapping[str, Any]] = None,
     ) -> dict[str, Any]:
         """Готовит данные для создания: obj_in + extra_data."""
-        data = obj_in.model_dump(exclude_unset=True)
+        if isinstance(obj_in, Mapping):
+            data: dict[str, Any] = dict(obj_in)
+        else:
+            data: dict[str, Any] = obj_in.model_dump(exclude_unset=True)
 
         if extra_data:
             data.update(extra_data)

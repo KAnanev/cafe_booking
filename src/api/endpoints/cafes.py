@@ -38,7 +38,7 @@ async def get_cafes(
     Для администраторов и менеджеров - все кафе (с возможностью выбора),
     для пользователей - только активные.
     """
-    cafes = await cafe_manager.list(show_all=show_all, user=user)
+    cafes = await cafe_manager.list_cafe(show_all=show_all, user=user)
     return [CafeRead.model_validate(cafe) for cafe in cafes]
 
 
