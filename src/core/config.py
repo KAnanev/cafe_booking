@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     log_console_enabled: bool = False
     log_file_enabled: bool = True
 
+    CELERY_BROKER_URL: str
+    CELERY_RESULT_BACKEND: str
+
     @property
     def database_url(self) -> str:
         """Возвращает URL для асинхронной базы данных (postgresql+asyncpg)."""

@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, time
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.constants import REMIND_MINUTES_BEFORE
 from crud.booking import booking_crud
 from crud.cafe import cafe_crud
 from crud.slots import slot_crud
@@ -12,6 +13,7 @@ from managers.exceptions import (
     BookingValidationError,
     PermissionDenied,
 )
+from managers.outbox_manager import OutboxManager, utcnow
 from models.booking import Booking
 from models.user import User, UserRole
 from schemas.booking import (
@@ -94,6 +96,33 @@ class BookingManager:
             user_id=manager_id,
         )
         return [cafe.id for cafe in cafes]
+
+    async def _enqueue_booking_events_created(
+        self,
+        *,
+        booking_id: UUID,
+        user_id: UUID,
+        cafe_id: UUID,
+        booking_date: date,
+        slot_start_time: time,
+        remind_minutes_before: int,
+    ) -> None:
+        """Собирает сообщение."""
+        outbox = OutboxManager(self.session)
+
+        await outbox.add(
+            event_type='booking.notify.admin.created',
+            aggregate_type='booking',
+            aggregate_id=booking_id,
+            payload={
+                'booking_id': str(booking_id),
+                'user_id': str(user_id),
+                'cafe_id': str(cafe_id),
+                'booking_date': str(booking_date),
+                'slot_start_time': slot_start_time.isoformat(),
+            },
+            available_at=utcnow(),
+        )
 
     async def list_bookings(
         self,
@@ -196,6 +225,18 @@ class BookingManager:
         )
         if booking is None:
             raise BookingNotFound('Бронирование не найдено.')
+
+        slot_start_time = booking.tables_slots[0].slot.start_time
+
+        await self._enqueue_booking_events_created(
+            booking_id=booking.id,
+            user_id=booking.user_id,
+            cafe_id=booking.cafe_id,
+            booking_date=booking.booking_date,
+            slot_start_time=slot_start_time,
+            remind_minutes_before=REMIND_MINUTES_BEFORE,
+        )
+
         return self._build_booking_info(booking)
 
     def _build_booking_info(self, booking: Booking) -> BookingInfo:
