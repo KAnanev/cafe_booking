@@ -3,8 +3,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from api.dependencies.auth import require_admin_or_manager
-from api.dependencies.managers import get_cafe_manager
+from api.dependencies.auth import (
+    require_admin,
+    require_admin_or_manager,
+    require_auth,
+)
+from api.dependencies.managers import (
+    get_cafe_manager,
+)
 from managers.cafe_manager import CafeManager
 from models.user import User
 from schemas.cafe import CafeCreate, CafeRead, CafeUpdate
@@ -14,15 +20,25 @@ router = APIRouter()
 
 @router.get(
     '',
-    response_model=Sequence[CafeRead],
-    summary='Получить список кафе',
+    response_model=list[CafeRead],
+    status_code=status.HTTP_200_OK,
+    summary='Получение списка кафе.',
 )
 async def get_cafes(
-    show_all: bool = Query(False, description='Показывать неактивные кафе'),
+    show_all: bool = Query(
+        True,
+        description='Показывать все кафе или нет.'
+        'По умолчанию показывает все кафе',
+    ),
+    user: User = Depends(require_auth),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> Sequence[CafeRead]:
-    """Получить список всех кафе."""
-    cafes = await cafe_manager.list_cafes(show_all=show_all)
+    """Получение списка кафе.
+
+    Для администраторов и менеджеров - все кафе (с возможностью выбора),
+    для пользователей - только активные.
+    """
+    cafes = await cafe_manager.list_cafe(show_all=show_all, user=user)
     return [CafeRead.model_validate(cafe) for cafe in cafes]
 
 
@@ -30,50 +46,60 @@ async def get_cafes(
     '',
     response_model=CafeRead,
     status_code=status.HTTP_201_CREATED,
-    summary='Создать кафе',
+    summary='Создание нового кафе',
 )
 async def create_cafe(
     cafe_in: CafeCreate,
-    current_user: User = require_admin_or_manager,
+    user: User = Depends(require_admin),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
-    """Создать кафе."""
-    cafe = await cafe_manager.create_cafe(
-        cafe_in=cafe_in,
-        current_user=current_user,
-    )
+    """Создает новое кафе.
+
+    Только для администраторов и ???менеджеров???
+    """
+    cafe = await cafe_manager.create(obj_in=cafe_in, user_id=user.id)
     return CafeRead.model_validate(cafe)
 
 
 @router.get(
     '/{cafe_id}',
     response_model=CafeRead,
-    summary='Получить кафе по ID',
+    status_code=status.HTTP_200_OK,
+    summary='Получение информации о кафе по его ID',
 )
 async def get_cafe(
     cafe_id: UUID,
+    user: User = Depends(require_auth),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
-    """Получить информацию о кафе по его идентификатору."""
-    cafe = await cafe_manager.get_cafe(cafe_id=cafe_id)
+    """Получение информации о кафе по его ID.
+
+    Для администраторов и менеджеров - все кафе,
+    для пользователей - только активные.
+    """
+    cafe = await cafe_manager.get(cafe_id=cafe_id, user=user)
     return CafeRead.model_validate(cafe)
 
 
 @router.patch(
     '/{cafe_id}',
     response_model=CafeRead,
-    summary='Обновить кафе',
+    status_code=status.HTTP_200_OK,
+    summary='Обновление информации о кафе по его ID',
 )
 async def update_cafe(
     cafe_id: UUID,
     cafe_in: CafeUpdate,
-    current_user: User = require_admin_or_manager,
+    user: User = Depends(require_admin_or_manager),
     cafe_manager: CafeManager = Depends(get_cafe_manager),
 ) -> CafeRead:
-    """Обновить информацию о кафе."""
-    cafe = await cafe_manager.update_cafe(
+    """Обновление информации о кафе по его ID.
+
+    Только для администраторов и менеджеров.
+    """
+    cafe = await cafe_manager.update(
+        user=user,
         cafe_id=cafe_id,
-        cafe_in=cafe_in,
-        current_user=current_user,
+        obj_in=cafe_in,
     )
     return CafeRead.model_validate(cafe)

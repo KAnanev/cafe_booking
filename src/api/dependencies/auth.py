@@ -57,40 +57,30 @@ def require_role(
     return role_checker
 
 
-require_auth = Depends(
-    require_role(
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.USER,
-    ),
+require_auth = require_role(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.USER,
 )
 
-require_admin = Depends(
-    require_role(
-        UserRole.ADMIN,
-    ),
+require_admin = require_role(
+    UserRole.ADMIN,
 )
 
-require_admin_or_manager = Depends(
-    require_role(
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-    ),
+require_admin_or_manager = require_role(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
 )
 
-require_anonymous_or_admin_or_manager = Depends(
-    require_role(
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        allow_anonymous=True,
-    ),
+require_anonymous_or_admin_or_manager = require_role(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    allow_anonymous=True,
 )
 
-optional_user = Depends(
-    require_role(
-        UserRole.ADMIN,
-        UserRole.MANAGER,
-        UserRole.USER,
-        allow_anonymous=True,
-    ),
+optional_user = require_role(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.USER,
+    allow_anonymous=True,
 )

@@ -28,7 +28,7 @@ class UserManager:
         self.session = session
 
     async def _fetch_by_id(self, user_id: UUID) -> User | None:
-        return await user_crud.get_by_id(
+        return await user_crud.get(
             session=self.session,
             obj_id=user_id,
         )
@@ -46,7 +46,7 @@ class UserManager:
 
     async def get_multi(self) -> list[User]:
         """Возвращает список всех пользователей."""
-        return await user_crud.get_multi(session=self.session)
+        return await user_crud.list(session=self.session)
 
     async def _create_user(
         self,

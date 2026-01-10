@@ -96,6 +96,8 @@ MAX_IMAGE_SIZE = 5242880
 AUTH_TAG = 'Аутентификация'
 USERS_TAG = 'Пользователи'
 
+REMIND_MINUTES_BEFORE = 30
+
 __all__ = [
     # roles
     'ROLE_USER',
@@ -142,4 +144,5 @@ __all__ = [
     # openapi
     'AUTH_TAG',
     'USERS_TAG',
+    'REMINDER_MINUTES',
 ]

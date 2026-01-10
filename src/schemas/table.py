@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from pydantic import ConfigDict, Field
 
 from core.constants import (
@@ -13,13 +11,13 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
-from schemas.cafe import CafeShort
+from schemas.cafe import CafeReadShort
 
 
 class TableBase(BaseSchema):
     """Базовые поля стола."""
 
-    seats_number: int = Field(
+    seat_number: int = Field(
         ...,
         ge=TABLE_MIN_SEAT_NUMBER,
         le=TABLE_MAX_SEAT_NUMBER,
@@ -37,8 +35,7 @@ class TableCreate(TableBase):
 class TableUpdate(BaseSchema):
     """Частичное обновление стола."""
 
-    cafe_id: UUID | None = None
-    seats_number: int | None = Field(
+    seat_number: int | None = Field(
         default=None,
         ge=TABLE_MIN_SEAT_NUMBER,
         le=TABLE_MAX_SEAT_NUMBER,
@@ -53,14 +50,14 @@ class TableUpdate(BaseSchema):
 class TableRead(TableBase, UUIDIDSchema, TimestampSchema, ActiveSchema):
     """Полная схема стола с вложенным кафе."""
 
-    cafe: CafeShort
+    cafe: CafeReadShort
     model_config = ConfigDict(from_attributes=True)
 
 
 class TableShort(UUIDIDSchema):
     """Краткая схема стола."""
 
-    seats_number: int
+    seat_number: int
     description: str | None = Field(
         default=None,
         max_length=TABLE_DESCRIPTION_MAX_LENGTH,

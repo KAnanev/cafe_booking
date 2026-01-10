@@ -23,7 +23,7 @@ class SessionManager:
 
     async def get_by_id(self, user_session_id: UUID) -> UserSession | None:
         """Возвращает сессию по её идентификатору или None."""
-        return await session_crud.get_by_id(
+        return await session_crud.get(
             obj_id=user_session_id,
             session=self.session,
         )

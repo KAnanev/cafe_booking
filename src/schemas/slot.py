@@ -11,7 +11,7 @@ from schemas.base import (
     TimestampSchema,
     UUIDIDSchema,
 )
-from schemas.cafe import CafeShort
+from schemas.cafe import CafeReadShort
 
 
 class TimeSlotShort(UUIDIDSchema, BaseSchema):
@@ -82,5 +82,5 @@ class SlotUpdate(BaseSchema):
 class SlotRead(SlotBase, UUIDIDSchema, TimestampSchema, ActiveSchema):
     """Полное представление слота."""
 
-    cafe: CafeShort
+    cafe: CafeReadShort
     model_config = ConfigDict(from_attributes=True)

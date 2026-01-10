@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, EmailStr, Field, StringConstraints
 
 from core.constants import (
     CAFE_ADDRESS_MAX_LENGTH,
@@ -18,70 +18,103 @@ from schemas.base import (
     UUIDIDSchema,
 )
 
+CafeName = Annotated[
+    str,
+    StringConstraints(
+        min_length=CAFE_NAME_MIN_LENGTH,
+        max_length=CAFE_NAME_MAX_LENGTH,
+    ),
+]
+
+CafeAddress = Annotated[
+    str,
+    StringConstraints(max_length=CAFE_ADDRESS_MAX_LENGTH),
+]
+
+CafePhone = Annotated[
+    str,
+    StringConstraints(max_length=PHONE_MAX_LENGTH),
+]
+
+CafeDescription = Annotated[
+    str,
+    StringConstraints(
+        min_length=DESCRIPTION_MIN_LENGTH,
+        max_length=DESCRIPTION_MAX_LENGTH,
+    ),
+]
+
+ManagersIdRequired = Annotated[
+    list[UUID],
+    Field(min_length=1, description='Список id пользователей-менеджеров'),
+]
+
+ManagersIdOptional = Annotated[
+    Optional[list[UUID]],
+    Field(
+        default=None,
+        description='Полная замена списка менеджеров (если передано)',
+    ),
+]
+
+
+class CafeManagerRead(UUIDIDSchema, BaseSchema):
+    """Менеджер (вложение в CafeRead)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    username: str
+    email: EmailStr
+    phone: Optional[
+        Annotated[str, StringConstraints(max_length=PHONE_MAX_LENGTH)]
+    ] = None
+    tg_id: Optional[str] = None
+
 
 class CafeBase(BaseSchema):
     """Базовые поля кафе."""
 
-    name: str = Field(
-        ...,
-        min_length=CAFE_NAME_MIN_LENGTH,
-        max_length=CAFE_NAME_MAX_LENGTH,
-    )
-    address: str = Field(
-        ...,
-        max_length=CAFE_ADDRESS_MAX_LENGTH,
-    )
-    phone: str = Field(
-        ...,
-        max_length=PHONE_MAX_LENGTH,
-    )
-    description: str = Field(
-        ...,
-        min_length=DESCRIPTION_MIN_LENGTH,
-        max_length=DESCRIPTION_MAX_LENGTH,
-    )
+    name: CafeName
+    address: CafeAddress
+    phone: CafePhone
+    description: CafeDescription
     photo_id: Optional[UUID] = None
 
 
 class CafeCreate(CafeBase):
     """Создание кафе."""
 
-    pass
+    managers_id: ManagersIdRequired
 
 
 class CafeUpdate(BaseSchema):
     """Частичное обновление кафе."""
 
-    name: Optional[str] = Field(
-        default=None,
-        min_length=CAFE_NAME_MIN_LENGTH,
-        max_length=CAFE_NAME_MAX_LENGTH,
-    )
-    address: Optional[str] = Field(
-        default=None,
-        max_length=CAFE_ADDRESS_MAX_LENGTH,
-    )
-    phone: Optional[str] = Field(
-        default=None,
-        max_length=PHONE_MAX_LENGTH,
-    )
-    description: Optional[str] = Field(
-        default=None,
-        min_length=DESCRIPTION_MIN_LENGTH,
-        max_length=DESCRIPTION_MAX_LENGTH,
-    )
+    name: Optional[CafeName] = None
+    address: Optional[CafeAddress] = None
+    phone: Optional[CafePhone] = None
+    description: Optional[CafeDescription] = None
     photo_id: Optional[UUID] = None
+
+    managers_id: ManagersIdOptional
     is_active: Optional[bool] = None
 
 
-class CafeRead(CafeBase, UUIDIDSchema, TimestampSchema, ActiveSchema):
-    """Полная схема кафе для ответа."""
+class ManagersSchema(BaseSchema):
+    """Поле с менеджером."""
 
-    model_config = ConfigDict(from_attributes=True)
+    managers: list[CafeManagerRead] = Field(default_factory=list)
 
 
-class CafeShort(UUIDIDSchema):
-    """Краткая схема кафе для вложений."""
+class CafeRead(
+    TimestampSchema,
+    ActiveSchema,
+    ManagersSchema,
+    CafeBase,
+    UUIDIDSchema,
+):
+    """Ответ (list/get/create/patch)."""
 
-    name: str = Field(..., max_length=CAFE_NAME_MAX_LENGTH)
-    address: str = Field(..., max_length=CAFE_ADDRESS_MAX_LENGTH)
+
+class CafeReadShort(CafeBase, UUIDIDSchema):
+    """Короткий ответ для booking."""
