@@ -29,3 +29,7 @@ loguru==0.7.3
 
 # --- Images ---
 Pillow==10.4.0
+
+# --- Tasks ---
+celery~=5.6.1
+flower~=2.0.1

@@ -4,7 +4,7 @@ import uuid
 
 from celery import shared_task
 
-from core.db import AsyncSessionLocal
+from core.db_celery import CelerySessionLocal
 from managers.outbox_manager import OutboxManager
 from models import OutboxMessage, OutboxStatus
 from tasks.notifications import dispatch_outbox_event
@@ -19,7 +19,7 @@ def dispatch_outbox(limit: int = 100) -> int:
 
 
 async def _dispatch_outbox(limit: int) -> int:
-    async with AsyncSessionLocal() as session:
+    async with CelerySessionLocal() as session:
         manager = OutboxManager(session)
 
         async with session.begin():
@@ -46,7 +46,7 @@ def send_outbox_message(outbox_id: str) -> str:
 async def _send_outbox_message(outbox_id: str) -> str:
     outbox_uuid = uuid.UUID(outbox_id)
 
-    async with AsyncSessionLocal() as session:
+    async with CelerySessionLocal() as session:
         manager = OutboxManager(session)
 
         msg = await session.get(OutboxMessage, outbox_uuid)

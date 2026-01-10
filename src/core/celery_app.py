@@ -5,7 +5,7 @@ from core.config import settings
 celery_app = Celery(
     'booking',
     broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_BACKEND,
+    backend=settings.CELERY_RESULT_BACKEND,
     include=['tasks.outbox'],
 )
 
