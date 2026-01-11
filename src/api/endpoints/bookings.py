@@ -66,3 +66,15 @@ async def get_booking(
         booking_id,
         current_user=current_user,
     )
+
+
+@router.patch("/{booking_id}", response_model=BookingInfo)
+async def update_booking(
+    booking_id: UUID,
+    updated_booking: BookingCreate,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(get_current_active_user),
+) -> BookingInfo:
+    """Обновить информацию о бронировании."""
+    manager = BookingManager(session)
+    return await manager.update_booking(booking_id, updated_booking)

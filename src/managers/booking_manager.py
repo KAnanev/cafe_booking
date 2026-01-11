@@ -274,3 +274,33 @@ class BookingManager:
             },
             from_attributes=True,
         )
+
+
+async def update_booking(
+    self: "BookingManager",
+    booking_id: UUID,
+    updated_booking: BookingCreate,
+) -> BookingInfo:
+    """Обновить информацию о бронировании."""
+    booking = await booking_crud.get_by_id(booking_id, self.session)
+    if not booking:
+        raise BookingNotFound(f'Бронирование с ID {booking_id} не найдено.')
+
+    if updated_booking.date and updated_booking.date != booking.date:
+        await self._validate_booking_date(updated_booking.date)
+        booking.date = updated_booking.date
+
+    if (
+        updated_booking.tables_slots
+        and updated_booking.tables_slots != booking.tables_slots
+    ):
+        await self._validate_tables_slots(
+            updated_booking.tables_slots,
+            booking.cafe_id,
+        )
+        booking.tables_slots = updated_booking.tables_slots
+
+    self.session.add(booking)
+    await self.session.commit()
+
+    return BookingInfo.model_validate(booking)
