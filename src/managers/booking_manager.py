@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -105,9 +105,8 @@ class BookingManager:
         cafe_id: UUID,
         booking_date: date,
         slot_start_time: time,
-        remind_minutes_before: int,
     ) -> None:
-        """Собирает сообщение."""
+        """Собирает сообщение админам и пользователю."""
         outbox = OutboxManager(self.session)
 
         await outbox.add(
@@ -122,6 +121,32 @@ class BookingManager:
                 'slot_start_time': slot_start_time.isoformat(),
             },
             available_at=utcnow(),
+        )
+
+        start_dt = datetime.combine(
+            booking_date,
+            slot_start_time,
+            tzinfo=timezone.utc,
+        )
+        remind_at = start_dt - timedelta(minutes=REMIND_MINUTES_BEFORE)
+
+        if remind_at <= utcnow():
+            remind_at = utcnow()
+
+        await outbox.add(
+            event_type='booking.reminder.user',
+            aggregate_type='booking',
+            aggregate_id=booking_id,
+            payload={
+                'booking_id': str(booking_id),
+                'user_id': str(user_id),
+                'cafe_id': str(cafe_id),
+                'booking_date': str(booking_date),
+                'slot_start_time': slot_start_time.isoformat(),
+                'remind_minutes_before': REMIND_MINUTES_BEFORE,
+                'remind_at': remind_at.isoformat(),
+            },
+            available_at=remind_at,
         )
 
     async def list_bookings(
@@ -226,15 +251,19 @@ class BookingManager:
         if booking is None:
             raise BookingNotFound('Бронирование не найдено.')
 
-        slot_start_time = booking.tables_slots[0].slot.start_time
+        slot_ids = [p.slot_id for p in booking_in.tables_slots]
+        slot_start_time = await slot_crud.get_min_start_time(
+            session=self.session,
+            cafe_id=booking_in.cafe_id,
+            slot_ids=slot_ids,
+        )
 
         await self._enqueue_booking_events_created(
             booking_id=booking.id,
-            user_id=booking.user_id,
-            cafe_id=booking.cafe_id,
-            booking_date=booking.booking_date,
+            user_id=current_user.id,
+            cafe_id=booking_in.cafe_id,
+            booking_date=booking_in.booking_date,
             slot_start_time=slot_start_time,
-            remind_minutes_before=REMIND_MINUTES_BEFORE,
         )
 
         return self._build_booking_info(booking)

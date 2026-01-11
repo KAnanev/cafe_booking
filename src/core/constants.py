@@ -145,4 +145,5 @@ __all__ = [
     'AUTH_TAG',
     'USERS_TAG',
     'REMINDER_MINUTES',
+    'REMIND_MINUTES_BEFORE',
 ]
