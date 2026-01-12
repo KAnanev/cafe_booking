@@ -19,7 +19,6 @@ from models.user import User, UserRole
 from schemas.booking import (
     BookingCreate,
     BookingInfo,
-    BookingUpdate,
     TablesSlots,
     TablesSlotsInfo,
 )
@@ -240,85 +239,6 @@ class BookingManager:
 
         return self._build_booking_info(booking)
 
-    async def update_booking(
-        self,
-        booking_id: UUID,
-        updated_booking: BookingUpdate,
-        current_user: User | None = None,
-    ) -> BookingInfo:
-        """Обновить информацию о бронировании."""
-        if current_user is None:
-            raise PermissionDenied('Нет доступа.')
-
-        booking = await booking_crud.get_by_id_with_relations(
-            booking_id=booking_id,
-            session=self.session,
-        )
-        if booking is None:
-            raise BookingNotFound(f'Бронирование с ID {booking_id} не найдено.')
-
-        # Проверка прав доступа
-        if current_user.role == UserRole.ADMIN:
-            pass
-        elif current_user.role == UserRole.MANAGER:
-            cafe_ids = await self._get_manager_cafe_ids(current_user.id)
-            if booking.cafe_id not in cafe_ids:
-                raise PermissionDenied('Нет доступа.')
-        elif booking.user_id != current_user.id:
-            raise PermissionDenied('Нет доступа.')
-
-        # Запланированные новые значения
-        new_date = (
-            updated_booking.booking_date
-            if updated_booking.booking_date is not None
-            else booking.booking_date
-        )
-
-        # Нельзя менять кафе текущего бронирования в рамках этого метода
-        if updated_booking.cafe_id is not None and updated_booking.cafe_id != booking.cafe_id:
-            raise BookingValidationError('Нельзя менять кафе бронирования.')
-
-        # Если изменяется дата, валидируем её
-        if updated_booking.booking_date is not None and updated_booking.booking_date != booking.booking_date:
-            await self._validate_booking_date(updated_booking.booking_date)
-
-        # Обработка изменения tables_slots
-        if updated_booking.tables_slots is not None:
-            # Проверяем доступность и валидность новых пар стол/слот
-            await self._validate_tables_slots(updated_booking.tables_slots, booking.cafe_id)
-            await self._ensure_slots_free(updated_booking.tables_slots, new_date)
-
-            # Удаляем старые связи и создаём новые
-            for link in list(booking.tables_slots):
-                self.session.delete(link)
-            await self.session.flush()
-            await booking_crud._save_tables_slots(
-                booking=booking,
-                tables_slots=updated_booking.tables_slots,
-                session=self.session,
-            )
-        else:
-            # Если таблицы не меняются, но меняется дата — нужно проверить, свободны ли старые слоты на новую дату
-            if updated_booking.booking_date is not None and updated_booking.booking_date != booking.booking_date:
-                existing_pairs = [TablesSlots(table_id=link.table_id, slot_id=link.slot_id) for link in booking.tables_slots]
-                await self._ensure_slots_free(existing_pairs, new_date)
-
-        # Обновляем простые поля
-        if updated_booking.guest_number is not None:
-            booking.guest_number = updated_booking.guest_number
-        if updated_booking.note is not None:
-            booking.note = updated_booking.note
-        if updated_booking.status is not None:
-            booking.status = updated_booking.status
-        if updated_booking.booking_date is not None and updated_booking.booking_date != booking.booking_date:
-            booking.booking_date = updated_booking.booking_date
-
-        self.session.add(booking)
-        await self.session.commit()
-        await self.session.refresh(booking)
-
-        return self._build_booking_info(booking)
-
     def _build_booking_info(self, booking: Booking) -> BookingInfo:
         """Формирует ответ по бронированию."""
         cafe_short = CafeReadShort.model_validate(
@@ -354,3 +274,33 @@ class BookingManager:
             },
             from_attributes=True,
         )
+
+
+async def update_booking(
+    self: "BookingManager",
+    booking_id: UUID,
+    updated_booking: BookingCreate,
+) -> BookingInfo:
+    """Обновить информацию о бронировании."""
+    booking = await booking_crud.get_by_id(booking_id, self.session)
+    if not booking:
+        raise BookingNotFound(f'Бронирование с ID {booking_id} не найдено.')
+
+    if updated_booking.date and updated_booking.date != booking.date:
+        await self._validate_booking_date(updated_booking.date)
+        booking.date = updated_booking.date
+
+    if (
+        updated_booking.tables_slots
+        and updated_booking.tables_slots != booking.tables_slots
+    ):
+        await self._validate_tables_slots(
+            updated_booking.tables_slots,
+            booking.cafe_id,
+        )
+        booking.tables_slots = updated_booking.tables_slots
+
+    self.session.add(booking)
+    await self.session.commit()
+
+    return BookingInfo.model_validate(booking)
