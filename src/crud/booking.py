@@ -118,8 +118,7 @@ class BookingCRUD(CRUDBase[Booking, BookingCreate, BookingCreate]):
             tables_slots=obj_in.tables_slots,
             session=session,
         )
-        await session.commit()
-        await session.refresh(booking)
+
         return booking
 
     async def _save_tables_slots(

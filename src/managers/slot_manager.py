@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from datetime import time
 from uuid import UUID
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.slots import slot_crud
@@ -124,3 +126,20 @@ class SlotManager:
             )
         except ValueError as exc:
             raise SlotValidationError(str(exc)) from exc
+
+    async def get_min_start_time(
+        self,
+        session: AsyncSession,
+        *,
+        cafe_id: UUID,
+        slot_ids: list[UUID],
+    ) -> time:
+        """Возвращает минимальный start_time среди указанных слотов."""
+        stmt = select(func.min(Slot.start_time)).where(
+            Slot.cafe_id == cafe_id,
+            Slot.id.in_(slot_ids),
+        )
+        res = await session.scalar(stmt)
+        if res is None:
+            raise ValueError('Слоты не найдены')
+        return res
