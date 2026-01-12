@@ -7,7 +7,7 @@ from api.dependencies.users import get_current_active_user
 from core.db import get_async_session
 from managers.booking_manager import BookingManager
 from models.user import User
-from schemas.booking import BookingCreate, BookingUpdate, BookingInfo
+from schemas.booking import BookingCreate, BookingInfo
 
 router = APIRouter()
 
@@ -71,10 +71,11 @@ async def get_booking(
 @router.patch("/{booking_id}", response_model=BookingInfo)
 async def update_booking(
     booking_id: UUID,
-    updated_booking: BookingUpdate,
+    updated_booking: BookingCreate,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(get_current_active_user),
 ) -> BookingInfo:
     """Обновить информацию о бронировании."""
     manager = BookingManager(session)
-    return await manager.update_booking(booking_id, updated_booking, current_user=current_user)
+    return await manager.update_booking(booking_id, updated_booking)
+
