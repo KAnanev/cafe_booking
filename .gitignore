@@ -167,3 +167,5 @@ cython_debug/
 /infra/.env.dev
 /infra/.env.test
 /infra/pgdata_dev/
+/project_tree.txt/
+project_tree.txt/

@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
 
+    flower_port: int = Field(default=5555)
+    flower_basic_auth: Optional[str] = Field(default=None)
+
     @property
     def database_url(self) -> str:
         """Возвращает URL для асинхронной базы данных (postgresql+asyncpg)."""
