@@ -23,8 +23,8 @@ async def upload_image_endpoint(
     user: User = Depends(can_upload_image),
     db: AsyncSession = Depends(get_async_session),
 ) -> ImageUploadResponse:
-    """
-    Загружает изображение и возвращает его ID.
+    """Загружает изображение и возвращает его ID.
+
     конвертирует в JPG и возвращает UUID.
     """
     image_id = await upload_image(
@@ -39,9 +39,9 @@ async def upload_image_endpoint(
     '/{image_id}',
     responses={
         200: {"content": {
-                "image/jpeg": {}
+                "image/jpeg": {},
             }},
-        404: {"description": "Image not found"}
+        404: {"description": "Image not found"},
     },
 )
 async def get_image_endpoint(

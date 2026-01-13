@@ -1,7 +1,5 @@
-from fastapi import Depends
 
 from api.dependencies.auth import require_auth
-from models import User
 
 # Просто алиас для require_auth, если нужно семантическое имя
 get_current_active_user = require_auth
