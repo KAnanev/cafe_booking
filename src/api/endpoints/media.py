@@ -22,23 +22,31 @@ async def upload_image_endpoint(
     file: UploadFile = File(...),
     user: User = Depends(can_upload_image),
     db: AsyncSession = Depends(get_async_session),
-) -> dict[str, any]:
-    """Загружает изображение и возвращает его ID."""
+) -> ImageUploadResponse:
+    """Загружает изображение и возвращает его ID.
+
+    конвертирует в JPG и возвращает UUID.
+    """
     image_id = await upload_image(
         db=db,
         file=file,
         username=user.username,
     )
-    return {'id': image_id}
+    return ImageUploadResponse(id=image_id)
 
 
 @router.get(
     '/{image_id}',
-    responses={200: {'content': {'image/jpeg': {}}}},
+    responses={
+        200: {"content": {
+                "image/jpeg": {},
+            }},
+        404: {"description": "Image not found"},
+    },
 )
 async def get_image_endpoint(
     image_id: UUID,
     db: AsyncSession = Depends(get_async_session),
 ) -> FileResponse:
-    """Возвращает эндпоинт для изображения по его UUID."""
+    """Возвращает изображение по UUID в формате JPG."""
     return await get_image(db=db, image_id=image_id)

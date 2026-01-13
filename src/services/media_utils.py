@@ -14,7 +14,7 @@ def validate_image(file: UploadFile) -> None:
     if file.content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Only JPG and PNG images are allowed',
+            detail="Загружаемый файл должен быть либо в .jpg, либо в .png",
         )
 
 
@@ -24,7 +24,7 @@ async def read_and_validate_size(file: UploadFile) -> bytes:
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail='Image size exceeds 5 MB',
+            detail="Размер изображения превышает 5 MB",
         )
     return content
 
@@ -36,7 +36,7 @@ def convert_to_jpg(content: bytes) -> bytes:
     except (IOError, OSError):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Invalid image file',
+            detail="Неверный формат файла",
         )
 
     if image.mode != 'RGB':
