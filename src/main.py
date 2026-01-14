@@ -37,4 +37,3 @@ register_exception_handlers(app)
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(main_router)
-app.include_router(media_router, prefix='/media', tags=['media'])
