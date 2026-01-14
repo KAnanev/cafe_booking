@@ -4,7 +4,6 @@ from typing import Any, AsyncGenerator
 from fastapi import FastAPI
 
 from api.exception_handlers import register_exception_handlers
-from api.media import router as media_router
 from api.routers import main_router
 from core.config import settings
 from core.db import AsyncSessionLocal
@@ -37,4 +36,3 @@ register_exception_handlers(app)
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(main_router)
-app.include_router(media_router, prefix='/media', tags=['media'])
