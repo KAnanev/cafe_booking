@@ -1,8 +1,8 @@
 import uuid
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from core.db import Base
 from models.mixins import ActiveMixin, TimestampMixin
