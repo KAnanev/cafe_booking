@@ -17,6 +17,7 @@ router = APIRouter()
     '',
     response_model=ImageUploadResponse,
     status_code=201,
+    summary="Загрузить изображение",
 )
 async def upload_image_endpoint(
     file: UploadFile = File(...),
@@ -41,8 +42,9 @@ async def upload_image_endpoint(
         200: {"content": {
                 "image/jpeg": {},
             }},
-        404: {"description": "Image not found"},
+        404: {"description": "Изображение не найдено"},
     },
+    summary="Получить изображение",
 )
 async def get_image_endpoint(
     image_id: UUID,
