@@ -40,7 +40,6 @@ async def upload_image(
             file_path=str(path),
         )
         db.add(image)
-        await db.flush()
         await db.commit()
 
         logger.info(
@@ -69,7 +68,7 @@ async def get_image(
     """Получает изображение по UUID и возвращает в виде файла."""
     image = await db.get(Image, image_id)
 
-    if not image or not image.active:
+    if not image or not image.is_active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Image not found',
