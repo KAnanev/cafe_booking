@@ -306,7 +306,7 @@ class BookingManager:
 
 
 async def update_booking(
-    self: "BookingManager",
+    self: 'BookingManager',
     booking_id: UUID,
     updated_booking: BookingCreate,
 ) -> BookingInfo:

@@ -1,4 +1,3 @@
-
 from api.dependencies.auth import require_auth
 
 # Просто алиас для require_auth, если нужно семантическое имя

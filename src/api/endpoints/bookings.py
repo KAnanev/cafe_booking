@@ -68,7 +68,7 @@ async def get_booking(
     )
 
 
-@router.patch("/{booking_id}", response_model=BookingInfo)
+@router.patch('/{booking_id}', response_model=BookingInfo)
 async def update_booking(
     booking_id: UUID,
     updated_booking: BookingCreate,

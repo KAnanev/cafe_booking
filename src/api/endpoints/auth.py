@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, status
 
-from api.dependencies.managers import get_auth_manager, get_session_manager
+from api.dependencies.auth import get_login_use_case
+from api.dependencies.managers import get_session_manager
+from auth.use_cases.login import LoginUseCase
 from core.security import create_access_token
-from managers.auth_manager import AuthManager
 from managers.session_manager import SessionManager
 from schemas.auth import AuthRequest, AuthResponse
 
@@ -16,11 +17,11 @@ router = APIRouter()
 )
 async def login(
     data: AuthRequest,
-    auth_manager: AuthManager = Depends(get_auth_manager),
+    login_use_case: LoginUseCase = Depends(get_login_use_case),
     session_manager: SessionManager = Depends(get_session_manager),
 ) -> AuthResponse:
-    """Возвращает токен для последующей авторизации пользователя."""
-    user = await auth_manager.authenticate(
+    """Обрабатывает запрос на вход в систему и возвращает токен доступа."""
+    user = await login_use_case.execute(
         login=data.login,
         password=data.password,
     )

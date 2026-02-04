@@ -2,14 +2,20 @@ from typing import Awaitable, Callable
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.managers import (
     get_auth_manager,
     get_session_manager,
     get_user_manager,
 )
+from auth.infrastructure.password_service import SecurePasswordService
+from auth.providers.user_provider import DBUserProvider
+from auth.use_cases.login import LoginUseCase
+from core.db import get_async_session
 from core.exceptions import InvalidToken
 from core.security import decode_access_token
+from crud.user import user_crud
 from managers.auth_manager import AuthManager
 from managers.session_manager import SessionManager
 from managers.user_manager import UserManager
@@ -84,3 +90,12 @@ optional_user = require_role(
     UserRole.USER,
     allow_anonymous=True,
 )
+
+
+def get_login_use_case(
+    session: AsyncSession = Depends(get_async_session),
+) -> LoginUseCase:
+    """Фабрика для получения экземпляра LoginUseCase."""
+    provider = DBUserProvider(user_crud, session)
+    password_service = SecurePasswordService()
+    return LoginUseCase(provider, password_service)
