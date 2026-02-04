@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from core.logging import set_user_context
 from core.security import verify_password
 from crud.user import user_crud
@@ -9,7 +10,6 @@ from managers.exceptions import (
     UserInactive,
 )
 from models import User
-from models.user import UserRole
 
 
 class AuthManager:

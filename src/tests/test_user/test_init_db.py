@@ -4,9 +4,10 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from core.init_db import create_first_superuser
 from crud.user import user_crud
-from models.user import User, UserRole
+from models.user import User
 
 
 @pytest.mark.asyncio

@@ -5,6 +5,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from crud.cafe import CafeCRUD
 from crud.cafe_access import cafe_access_crud
 from managers.exceptions import (
@@ -13,7 +14,6 @@ from managers.exceptions import (
     PermissionDenied,
 )
 from models import Cafe, User
-from models.user import UserRole
 from schemas.cafe import CafeCreate, CafeUpdate
 
 

@@ -7,6 +7,7 @@ from pydantic import (
     model_validator,
 )
 
+from auth.domain.permissions.context import UserRole
 from core.constants import (
     PASSWORD_HASH_MAX_LENGTH,
     PASSWORD_HASH_MIN_LENGTH,
@@ -18,7 +19,6 @@ from core.constants import (
     USERNAME_MAX_LENGTH,
     USERNAME_MIN_LENGTH,
 )
-from models.user import UserRole
 from schemas.base import (
     ActiveSchema,
     BaseSchema,

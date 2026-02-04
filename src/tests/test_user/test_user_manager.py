@@ -3,9 +3,9 @@ from typing import Callable
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from managers.exceptions import UserAlreadyExists
 from managers.user_manager import UserManager
-from models.user import UserRole
 
 
 class TestUserManager:

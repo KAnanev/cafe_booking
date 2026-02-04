@@ -1,8 +1,9 @@
 from fastapi import Depends, HTTPException, status
 
 from api.dependencies.users import get_current_active_user
+from auth.domain.permissions.context import UserRole
 from models.cafe import Cafe
-from models.user import User, UserRole
+from models.user import User
 from validators.cafes import get_cafe_or_404
 
 

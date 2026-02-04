@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from core.constants import REMIND_MINUTES_BEFORE
 from crud.booking import booking_crud
 from crud.cafe import cafe_crud
@@ -15,7 +16,7 @@ from managers.exceptions import (
 )
 from managers.outbox_manager import OutboxManager, utcnow
 from models.booking import Booking
-from models.user import User, UserRole
+from models.user import User
 from schemas.booking import (
     BookingCreate,
     BookingInfo,

@@ -1,17 +1,14 @@
-from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Boolean, CheckConstraint, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from auth.domain.permissions.context import UserRole
 from core.constants import (
     CHECK_USER_EMAIL_OR_PHONE,
     EMAIL_MAX_LENGTH,
     PASSWORD_HASH_MAX_LENGTH,
     PHONE_MAX_LENGTH,
-    ROLE_ADMIN,
-    ROLE_MANAGER,
-    ROLE_USER,
     TG_ID_MAX_LENGTH,
     USERNAME_MAX_LENGTH,
 )
@@ -21,14 +18,6 @@ from models.mixins import ActiveMixin, TimestampMixin
 if TYPE_CHECKING:
     from models.cafe import CafeManagerLink
     from models.user_session import UserSession
-
-
-class UserRole(StrEnum):
-    """Роли пользователя."""
-
-    USER = ROLE_USER
-    MANAGER = ROLE_MANAGER
-    ADMIN = ROLE_ADMIN
 
 
 class User(TimestampMixin, ActiveMixin, Base):

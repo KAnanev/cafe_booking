@@ -9,6 +9,7 @@ from api.dependencies.managers import (
     get_session_manager,
     get_user_manager,
 )
+from auth.domain.permissions.context import UserRole
 from auth.infrastructure.password_service import SecurePasswordService
 from auth.providers.user_provider import DBUserProvider
 from auth.use_cases.login import LoginUseCase
@@ -20,7 +21,6 @@ from managers.auth_manager import AuthManager
 from managers.session_manager import SessionManager
 from managers.user_manager import UserManager
 from models import User
-from models.user import UserRole
 
 bearer_scheme = HTTPBearer(auto_error=False)
 

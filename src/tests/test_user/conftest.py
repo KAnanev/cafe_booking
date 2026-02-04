@@ -19,13 +19,14 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
+from auth.domain.permissions.context import UserRole
 from core.config import Settings
 from core.constants import SESSION_TTL_SECONDS
 from core.db import Base, get_async_session
 from core.security import create_access_token
 from main import app
 from models import UserSession
-from models.user import User, UserRole
+from models.user import User
 from schemas.user import UserCreate
 
 from .fixtures.test_data import (

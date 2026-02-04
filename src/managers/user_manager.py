@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.domain.permissions.context import UserRole
 from core.constants import ADMIN_ONLY_USER_UPDATE_FIELDS
 from core.security import get_password_hash
 from crud.user import user_crud
@@ -11,7 +12,7 @@ from managers.exceptions import (
     UserAlreadyExists,
     UserNotFound,
 )
-from models.user import User, UserRole
+from models.user import User
 from schemas.user import (
     UserAdminUpdate,
     UserCreate,
