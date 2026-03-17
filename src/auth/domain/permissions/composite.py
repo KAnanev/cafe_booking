@@ -12,7 +12,7 @@ class AllOf(PermissionPolicy):
     def is_allowed(
         self,
         *,
-        user: UserContext,
+        user: UserContext | None,
         action: str,
     ) -> bool:
         """Проверяет, удовлетворяют ли все политики доступа."""
@@ -32,7 +32,7 @@ class AnyOf(PermissionPolicy):
     def is_allowed(
         self,
         *,
-        user: UserContext,
+        user: UserContext | None,
         action: str,
     ) -> bool:
         """Проверяет, удовлетворяют ли хотя бы одна политика доступа."""

@@ -9,4 +9,3 @@ class PermissionPolicy(ABC):
     @abstractmethod
     def is_allowed(self, *, user: UserContext | None, action: str) -> bool:
         """Проверяет, разрешено ли действие для пользователя."""
-        ...

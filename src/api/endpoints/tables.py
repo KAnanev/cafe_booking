@@ -2,8 +2,11 @@ import uuid
 
 from fastapi import APIRouter, Depends, Query, status
 
-from api.dependencies.auth import require_admin_or_manager, require_auth
 from api.dependencies.managers import get_table_manager
+from auth.domain.permissions.presets import (
+    require_admin_or_manager,
+    require_auth,
+)
 from managers.table_manager import TableManager
 from models.user import User
 from schemas.table import TableCreate, TableRead, TableUpdate

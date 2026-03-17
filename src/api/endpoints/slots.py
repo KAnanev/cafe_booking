@@ -2,8 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from api.dependencies.auth import require_admin_or_manager
 from api.dependencies.managers import get_slot_manager
+from auth.domain.permissions.presets import require_admin_or_manager
 from managers.slot_manager import SlotManager
 from models.cafe import Cafe
 from models.user import User

@@ -2,12 +2,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
-from api.dependencies.auth import (
+from api.dependencies.authorization import require_permission
+from api.dependencies.managers import get_user_manager
+from auth.domain.permissions.presets import (
     require_admin_or_manager,
     require_anonymous_or_admin_or_manager,
     require_auth,
 )
-from api.dependencies.managers import get_user_manager
 from managers.user_manager import UserManager
 from models.user import User
 from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate
@@ -19,11 +20,13 @@ router = APIRouter()
     '/',
     response_model=UserDB,
     status_code=status.HTTP_201_CREATED,
+    dependencies=Depends(
+        require_permission(require_anonymous_or_admin_or_manager, action=''),
+    ),
     summary='Регистрация нового пользователя.',
 )
 async def create_user(
     user_in: UserCreate,
-    _: User | None = Depends(require_anonymous_or_admin_or_manager),
     user_manager: UserManager = Depends(get_user_manager),
 ) -> UserDB:
     """Создает нового пользователя с указанными данными.
