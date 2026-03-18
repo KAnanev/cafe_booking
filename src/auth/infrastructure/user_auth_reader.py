@@ -1,24 +1,34 @@
-from dataclasses import dataclass
-from typing import Protocol
-from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from auth.application.dto import UserAuthData
+from auth.application.ports import UserAuthReader
 from auth.domain.permissions.context import UserRole
-from models import User
+from crud.user import UserCRUD
+
+from src.models import User
 
 
-@dataclass(frozen=True)
-class UserAuthData:
-    """Класс для представления данных аутентификации пользователя."""
+class DBUserAuthReader(UserAuthReader):
+    """Класс для чтения данных аутентификации пользователя из базы данных."""
 
-    id: UUID
-    login: str
-    hashed_password: str
-    role: UserRole
-    is_active: bool
+    def __init__(self, user_crud: UserCRUD, session: AsyncSession) -> None:
+        """Конструктор класса."""
+        self.user_crud = user_crud
+        self.session = session
 
+    async def get_by_login(self, login: str) -> UserAuthData | None:
+        """Асинхронный метод для получения данных аутентификации."""
+        user: User | None = await self.user_crud.get_by_login(
+            login=login,
+            session=self.session,
+        )
+        if user is None:
+            return None
 
-class UserAuthReader(Protocol):
-    """Интерфейс для работы с пользователями."""
-
-    async def get_by_login(self, login: str) -> User | None:
-        """Получает пользователя по логину."""
+        return UserAuthData(
+            id=user.id,
+            login=user.username if user.username else user.email,
+            hashed_password=user.hashed_password,
+            role=UserRole(user.role),
+            is_active=user.is_active,
+        )

@@ -1,10 +1,10 @@
+from auth.application.ports import UserAuthReader
 from auth.application.use_cases.exceptions import (
     AuthenticationFailed,
     InactiveAccount,
 )
 from auth.domain.password import PasswordService
 from auth.domain.permissions.context import UserContext
-from auth.infrastructure.user_auth_reader import UserAuthReader
 
 
 class LoginUseCase:
