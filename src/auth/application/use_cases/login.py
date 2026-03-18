@@ -1,7 +1,10 @@
+from auth.application.use_cases.exceptions import (
+    InvalidCredentials,
+    UserInactive,
+)
 from auth.domain.password import PasswordService
-from auth.providers.user_provider import UserProvider
-from auth.use_cases.exceptions import InvalidCredentials, UserInactive
-from models import User
+from auth.domain.permissions.context import UserContext
+from auth.infrastructure.user_auth_reader import UserAuthReader
 
 
 class LoginUseCase:
@@ -9,16 +12,16 @@ class LoginUseCase:
 
     def __init__(
         self,
-        user_provider: UserProvider,
+        user_reader: UserAuthReader,
         password_service: PasswordService,
     ) -> None:
         """Инициализация класса LoginUseCase."""
-        self.user_provider = user_provider
+        self.user_reader = user_reader
         self.password_service = password_service
 
-    async def execute(self, login: str, password: str) -> User:
+    async def execute(self, login: str, password: str) -> UserContext:
         """Выполняет логин пользователя по логину и паролю."""
-        user = await self.user_provider.get_by_login(login=login)
+        user = await self.user_reader.get_by_login(login)
 
         if not user:
             raise InvalidCredentials()
@@ -29,4 +32,8 @@ class LoginUseCase:
         if not user.is_active:
             raise UserInactive()
 
-        return user
+        return UserContext(
+            id=user.id,
+            role=user.role,
+            is_active=user.is_active,
+        )
