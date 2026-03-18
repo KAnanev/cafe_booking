@@ -14,11 +14,10 @@ class AuthorizationUseCase:
         self,
         *,
         user: UserContext | None,
-        action: str,
     ) -> None:
         """Выполняет авторизацию пользователя."""
         if user is not None and not user.is_active:
             raise UserInactive()
 
-        if not self.policy.is_allowed(user=user, action=action):
+        if not self.policy.is_allowed(user=user):
             raise PermissionDenied()

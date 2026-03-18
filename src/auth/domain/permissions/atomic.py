@@ -5,7 +5,7 @@ from auth.domain.permissions.context import UserContext, UserRole
 class IsAuthenticated(PermissionPolicy):
     """Проверяет, аутентифицирован ли пользователь."""
 
-    def is_allowed(self, *, user: UserContext | None, action: str) -> bool:
+    def is_allowed(self, *, user: UserContext | None) -> bool:
         """Проверяет, аутентифицирован ли пользователь."""
         return user is not None
 
@@ -13,7 +13,7 @@ class IsAuthenticated(PermissionPolicy):
 class IsActiveUser(PermissionPolicy):
     """Проверяет, активный ли пользователь."""
 
-    def is_allowed(self, *, user: UserContext | None, action: str) -> bool:
+    def is_allowed(self, *, user: UserContext | None) -> bool:
         """Проверяет, активный ли пользователь."""
         return user is not None and user.is_active
 
@@ -25,7 +25,7 @@ class HasRole(PermissionPolicy):
         """Инициализирует политику проверки ролей."""
         self._allowed_roles = set(allowed_roles)
 
-    def is_allowed(self, *, user: UserContext | None, action: str) -> bool:
+    def is_allowed(self, *, user: UserContext | None) -> bool:
         """Проверяет, имеет ли пользователь указанные роли."""
         return user is not None and user.role in self._allowed_roles
 
@@ -33,6 +33,6 @@ class HasRole(PermissionPolicy):
 class IsAnonymous(PermissionPolicy):
     """Проверяет, анонимный ли пользователь."""
 
-    def is_allowed(self, *, user: UserContext | None, action: str) -> bool:
+    def is_allowed(self, *, user: UserContext | None) -> bool:
         """Проверяет, анонимный ли пользователь."""
         return user is None

@@ -13,13 +13,9 @@ class AllOf(PermissionPolicy):
         self,
         *,
         user: UserContext | None,
-        action: str,
     ) -> bool:
         """Проверяет, удовлетворяют ли все политики доступа."""
-        return all(
-            policy.is_allowed(user=user, action=action)
-            for policy in self._policies
-        )
+        return all(policy.is_allowed(user=user) for policy in self._policies)
 
 
 class AnyOf(PermissionPolicy):
@@ -33,10 +29,6 @@ class AnyOf(PermissionPolicy):
         self,
         *,
         user: UserContext | None,
-        action: str,
     ) -> bool:
         """Проверяет, удовлетворяют ли хотя бы одна политика доступа."""
-        return any(
-            policy.is_allowed(user=user, action=action)
-            for policy in self._policies
-        )
+        return any(policy.is_allowed(user=user) for policy in self._policies)
