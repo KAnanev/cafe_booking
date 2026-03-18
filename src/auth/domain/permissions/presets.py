@@ -1,6 +1,5 @@
 from .atomic import (
     HasRole,
-    IsActiveUser,
     IsAnonymous,
     IsAuthenticated,
 )
@@ -9,19 +8,16 @@ from .context import UserRole
 
 require_auth = AllOf(
     IsAuthenticated(),
-    IsActiveUser(),
     HasRole(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER),
 )
 
 require_admin = AllOf(
     IsAuthenticated(),
-    IsActiveUser(),
     HasRole(UserRole.ADMIN),
 )
 
 require_admin_or_manager = AllOf(
     IsAuthenticated(),
-    IsActiveUser(),
     HasRole(UserRole.ADMIN, UserRole.MANAGER),
 )
 

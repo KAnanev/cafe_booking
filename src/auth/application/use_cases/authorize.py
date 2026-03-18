@@ -1,6 +1,6 @@
+from auth.application.use_cases.exceptions import AccessDenied, InactiveAccount
 from auth.domain.permissions.base import PermissionPolicy
 from auth.domain.permissions.context import UserContext
-from auth.use_cases.exceptions import PermissionDenied, UserInactive
 
 
 class AuthorizationUseCase:
@@ -17,7 +17,7 @@ class AuthorizationUseCase:
     ) -> None:
         """Выполняет авторизацию пользователя."""
         if user is not None and not user.is_active:
-            raise UserInactive()
+            raise InactiveAccount()
 
         if not self.policy.is_allowed(user=user):
-            raise PermissionDenied()
+            raise AccessDenied()

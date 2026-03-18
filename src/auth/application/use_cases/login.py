@@ -1,6 +1,6 @@
 from auth.application.use_cases.exceptions import (
-    InvalidCredentials,
-    UserInactive,
+    AuthenticationFailed,
+    InactiveAccount,
 )
 from auth.domain.password import PasswordService
 from auth.domain.permissions.context import UserContext
@@ -24,13 +24,13 @@ class LoginUseCase:
         user = await self.user_reader.get_by_login(login)
 
         if not user:
-            raise InvalidCredentials()
+            raise AuthenticationFailed()
 
         if not self.password_service.verify(password, user.hashed_password):
-            raise InvalidCredentials()
+            raise AuthenticationFailed()
 
         if not user.is_active:
-            raise UserInactive()
+            raise InactiveAccount()
 
         return UserContext(
             id=user.id,

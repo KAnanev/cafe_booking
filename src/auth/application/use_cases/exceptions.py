@@ -1,16 +1,10 @@
-class InvalidCredentials(Exception):
+class AuthenticationFailed(Exception):
     """Исключение, возникающее при неверных учетных данных."""
 
-    pass
 
-
-class UserInactive(Exception):
+class InactiveAccount(Exception):
     """Исключение, возникающее при попытке входа в неактивный аккаунт."""
 
-    pass
 
-
-class PermissionDenied(Exception):
+class AccessDenied(Exception):
     """Исключение, возникающее при отсутствии прав доступа."""
-
-    pass
