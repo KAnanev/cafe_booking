@@ -13,7 +13,7 @@ class SecureTokenService:
     def create_access_token(
         self,
         user_id: UUID,
-        # user_session_id: UUID,
+        user_session_id: UUID,
     ) -> str:
         """Создаёт JWT access-токен.
 
@@ -28,7 +28,7 @@ class SecureTokenService:
             'exp': int(
                 (now + timedelta(seconds=ACCESS_TOKEN_TTL)).timestamp(),
             ),
-            # 'sid': str(user_session_id),
+            'sid': str(user_session_id),
         }
 
         return jwt.encode(
