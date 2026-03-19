@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 
 
-class AuthRequest(BaseModel):
+class LoginRequest(BaseModel):
     """Схема запроса на аутентификацию."""
 
     login: str
     password: str
 
 
-class AuthResponse(BaseModel):
+class LoginResponse(BaseModel):
     """Схема ответа на успешную аутентификацию."""
 
     access_token: str
