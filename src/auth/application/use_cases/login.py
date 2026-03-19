@@ -1,11 +1,13 @@
-from auth.application.dto import LoginAuthData, LoginResponseData
-from auth.application.ports import UserAuthReader
-from auth.application.use_cases.exceptions import (
+from auth.application.dto import LoginCommand, LoginResult
+from auth.application.exceptions import (
     AuthenticationFailed,
     InactiveAccount,
 )
-from auth.domain.password import PasswordService
-from auth.domain.token import TokenService
+from auth.application.interfaces import (
+    PasswordService,
+    TokenService,
+    UserRepository,
+)
 
 
 class LoginUseCase:
@@ -13,24 +15,24 @@ class LoginUseCase:
 
     def __init__(
         self,
-        user_reader: UserAuthReader,
+        user_repo: UserRepository,
         password_service: PasswordService,
         token_service: TokenService,
     ) -> None:
         """Инициализация класса LoginUseCase."""
-        self.user_reader = user_reader
+        self.user_repo = user_repo
         self.password_service = password_service
         self.token_service = token_service
 
-    async def execute(self, data: LoginAuthData) -> LoginResponseData:
+    async def execute(self, command: LoginCommand) -> LoginResult:
         """Выполняет логин пользователя по логину и паролю."""
-        user = await self.user_reader.get_by_login(data.login)
+        user = await self.user_repo.get_by_login(command.login)
 
         if not user:
             raise AuthenticationFailed()
 
         if not self.password_service.verify(
-            data.password,
+            command.password,
             user.hashed_password,
         ):
             raise AuthenticationFailed()
@@ -38,9 +40,6 @@ class LoginUseCase:
         if not user.is_active:
             raise InactiveAccount()
 
-        token = self.token_service.create_access_token(user.id)
+        access_token = self.token_service.create_access_token(user.id)
 
-        return LoginResponseData(
-            access_token=token,
-            token_type='Bearer',
-        )
+        return LoginResult(access_token=access_token)

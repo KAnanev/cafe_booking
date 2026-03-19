@@ -1,6 +1,7 @@
-from auth.application.use_cases.exceptions import AccessDenied, InactiveAccount
 from auth.domain.permissions.base import PermissionPolicy
 from auth.domain.permissions.context import UserContext
+
+from auth.application.exceptions import AccessDenied, InactiveAccount
 
 
 class AuthorizationUseCase:

@@ -1,22 +1,8 @@
 from dataclasses import dataclass
-from uuid import UUID
-
-from auth.domain.permissions.context import UserRole
 
 
 @dataclass(frozen=True)
-class UserAuthData:
-    """Класс для представления данных аутентификации пользователя."""
-
-    id: UUID
-    login: str
-    hashed_password: str
-    role: UserRole
-    is_active: bool
-
-
-@dataclass(frozen=True)
-class LoginAuthData:
+class LoginCommand:
     """Класс для хранения данных аутентификации."""
 
     login: str
@@ -24,8 +10,8 @@ class LoginAuthData:
 
 
 @dataclass(frozen=True)
-class LoginResponseData:
+class LoginResult:
     """Класс для хранения данных ответа при успешной авторизации."""
 
     access_token: str
-    token_type: str
+    token_type: str = 'Bearer'

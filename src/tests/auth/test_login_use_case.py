@@ -3,7 +3,7 @@ from auth.providers.user_auth_reader import UserProvider
 from auth.use_cases.exceptions import InvalidCredentials, UserInactive
 from auth.use_cases.login import LoginUseCase
 
-from auth.domain.password import PasswordService
+from auth.application.interfaces import PasswordService
 
 
 class FakeUser:
