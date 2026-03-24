@@ -9,8 +9,7 @@ from auth.application.interfaces import (
     PasswordService,
     TokenService,
 )
-from auth.application.ports.session_repository import SessionRepository
-from auth.application.ports.user_reader import UserRepository
+from auth.application.ports.uow import AuthUnitOfWork
 from auth.domain.entities import UserSession as UserSessionEntity
 
 SESSION_TTL_SECONDS = 3600 * 24 * 7
@@ -21,20 +20,18 @@ class LoginUseCase:
 
     def __init__(
         self,
-        user_repo: UserRepository,
-        session_repo: SessionRepository,
+        uow: AuthUnitOfWork,
         password_service: PasswordService,
         token_service: TokenService,
     ) -> None:
         """Инициализация класса LoginUseCase."""
-        self.user_repo = user_repo
-        self.session_repo = session_repo
+        self.uow = uow
         self.password_service = password_service
         self.token_service = token_service
 
     async def execute(self, command: LoginCommand) -> LoginResult:
         """Выполняет логин пользователя по логину и паролю."""
-        user = await self.user_repo.get_by_login(command.login)
+        user = await self.uow.users.get_by_login(command.login)
 
         if not user:
             raise AuthenticationFailed()
@@ -53,7 +50,7 @@ class LoginUseCase:
             seconds=SESSION_TTL_SECONDS,
         )
 
-        session = await self.session_repo.add(
+        session = await self.uow.sessions.add(
             UserSessionEntity(
                 user_id=user.id,
                 last_activity=last_activity,
