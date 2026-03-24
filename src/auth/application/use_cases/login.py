@@ -7,10 +7,10 @@ from auth.application.exceptions import (
 )
 from auth.application.interfaces import (
     PasswordService,
-    SessionRepository,
     TokenService,
-    UserRepository,
 )
+from auth.application.ports.session_repository import SessionRepository
+from auth.application.ports.user_reader import UserRepository
 from auth.domain.entities import UserSession as UserSessionEntity
 
 SESSION_TTL_SECONDS = 3600 * 24 * 7
