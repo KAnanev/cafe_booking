@@ -1,31 +1,20 @@
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from auth.application.use_cases.login import LoginUseCase
+from auth.infrastructure.db import AsyncSessionLocal
 from auth.infrastructure.password_service import SecurePasswordService
-from auth.infrastructure.sqlalchemy_session_repository import (
-    SqlAlchemySessionRepository,
-)
-from auth.infrastructure.sqlalchemy_user_repository import (
-    SqlAlchemyUserRepository,
-)
 from auth.infrastructure.token_service import SecureTokenService
-from core.db import get_async_session
-from crud.user import user_crud
+from auth.infrastructure.uow.sqlalchemy_auth_uow import (
+    SqlAlchemyAuthUnitOfWork,
+)
 
 
-def get_login_use_case(
-    session: AsyncSession = Depends(get_async_session),
-) -> LoginUseCase:
+def get_login_use_case() -> LoginUseCase:
     """Фабрика для получения экземпляра LoginUseCase."""
-    user_repo = SqlAlchemyUserRepository(user_crud, session)
-    session_repo = SqlAlchemySessionRepository(session)
+    uow = SqlAlchemyAuthUnitOfWork(AsyncSessionLocal)
     password_service = SecurePasswordService()
     token_service = SecureTokenService()
 
     return LoginUseCase(
-        user_repo=user_repo,
+        uow=uow,
         password_service=password_service,
         token_service=token_service,
-        session_repo=session_repo,
     )
