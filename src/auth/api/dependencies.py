@@ -3,9 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.application.use_cases.login import LoginUseCase
 from auth.infrastructure.password_service import SecurePasswordService
-from auth.infrastructure.session_repository import SqlAlchemySessionRepository
+from auth.infrastructure.sqlalchemy_session_repository import (
+    SqlAlchemySessionRepository,
+)
+from auth.infrastructure.sqlalchemy_user_repository import (
+    SqlAlchemyUserRepository,
+)
 from auth.infrastructure.token_service import SecureTokenService
-from auth.infrastructure.user_repository import SqlAlchemyUserRepository
 from core.db import get_async_session
 from crud.user import user_crud
 
