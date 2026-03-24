@@ -4,7 +4,3 @@ class AuthenticationFailed(Exception):
 
 class InactiveAccount(Exception):
     """Исключение, возникающее при попытке входа в неактивный аккаунт."""
-
-
-class AccessDenied(Exception):
-    """Исключение, возникающее при отсутствии прав доступа."""
