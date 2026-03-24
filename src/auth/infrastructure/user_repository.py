@@ -1,8 +1,9 @@
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.application.interfaces import UserRepository
 from auth.domain.models import AuthUser
-from crud.user import UserCRUD
+from models.user import User as ORMUser
 
 from src.models import User
 
@@ -10,17 +11,19 @@ from src.models import User
 class SqlAlchemyUserRepository(UserRepository):
     """Класс для чтения данных аутентификации пользователя из базы данных."""
 
-    def __init__(self, user_crud: UserCRUD, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         """Конструктор класса."""
-        self.user_crud = user_crud
         self.session = session
 
     async def get_by_login(self, login: str) -> AuthUser | None:
         """Асинхронный метод для получения данных аутентификации."""
-        user: User | None = await self.user_crud.get_by_login(
-            login=login,
-            session=self.session,
+        stmt = select(ORMUser).where(
+            or_(ORMUser.email == login, ORMUser.phone == login),
         )
+
+        result = await self.session.execute(stmt)
+        user: User | None = result.scalar_one_or_none()
+
         if user is None:
             return None
 
