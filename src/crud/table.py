@@ -17,7 +17,8 @@ class TableCRUD(CRUDBase[Table, TableCreate, TableUpdate]):
     def _query_for_admin(self, *, cafe_id: uuid.UUID) -> Select:
         """Готовит запрос для админов."""
         return (
-            self._select_base()
+            self
+            ._select_base()
             .join(Cafe, Cafe.id == self._model.cafe_id)
             .where(self._model.cafe_id == cafe_id)
         )
@@ -25,7 +26,8 @@ class TableCRUD(CRUDBase[Table, TableCreate, TableUpdate]):
     def _query_for_user(self, *, cafe_id: uuid.UUID) -> Select:
         """Готовит запрос для пользователей."""
         return (
-            self._select_base()
+            self
+            ._select_base()
             .join(Cafe, Cafe.id == self._model.cafe_id)
             .where(self._model.cafe_id == cafe_id)
             .where(Cafe.is_active.is_(True))
@@ -39,7 +41,8 @@ class TableCRUD(CRUDBase[Table, TableCreate, TableUpdate]):
     ) -> Select:
         """Готовит запрос для менеджеров."""
         return (
-            self._select_base()
+            self
+            ._select_base()
             .join(Cafe, Cafe.id == self._model.cafe_id)
             .join(CafeManagerLink, CafeManagerLink.cafe_id == Cafe.id)
             .where(self._model.cafe_id == cafe_id)

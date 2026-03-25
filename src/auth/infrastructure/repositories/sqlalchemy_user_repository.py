@@ -5,8 +5,6 @@ from auth.application.ports.user_reader import UserRepository
 from auth.domain.models import AuthUser
 from models.user import User as ORMUser
 
-from src.models import User
-
 
 class SqlAlchemyUserRepository(UserRepository):
     """Класс для чтения данных аутентификации пользователя из базы данных."""
@@ -22,7 +20,7 @@ class SqlAlchemyUserRepository(UserRepository):
         )
 
         result = await self.session.execute(stmt)
-        user: User | None = result.scalar_one_or_none()
+        user: ORMUser | None = result.scalar_one_or_none()
 
         if user is None:
             return None

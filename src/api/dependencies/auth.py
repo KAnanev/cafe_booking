@@ -1,7 +1,5 @@
 from typing import Awaitable, Callable
 
-from auth.providers.user_auth_reader import DBUserProvider
-from auth.use_cases.login import LoginUseCase
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +11,8 @@ from api.dependencies.managers import (
 )
 from auth.domain.permissions.context import UserRole
 from auth.infrastructure.password_service import SecurePasswordService
+from auth.providers.user_auth_reader import DBUserProvider
+from auth.use_cases.login import LoginUseCase
 from core.db import get_async_session
 from core.exceptions import InvalidToken
 from core.security import decode_access_token

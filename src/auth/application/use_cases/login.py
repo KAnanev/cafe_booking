@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from auth.application.dto import LoginCommand, LoginResult
 from auth.application.exceptions import (
@@ -11,8 +11,6 @@ from auth.application.interfaces import (
 )
 from auth.application.ports.uow import AuthUnitOfWork
 from auth.domain.entities import UserSession as UserSessionEntity
-
-SESSION_TTL_SECONDS = 3600 * 24 * 7
 
 
 class LoginUseCase:
@@ -46,24 +44,15 @@ class LoginUseCase:
             if not user.is_active:
                 raise InactiveAccount()
 
-            last_activity = datetime.now(timezone.utc)
-            expires_at = last_activity + timedelta(
-                seconds=SESSION_TTL_SECONDS,
-            )
-
-            session = await self.uow.sessions.add(
-                UserSessionEntity(
-                    user_id=user.id,
-                    last_activity=last_activity,
-                    expires_at=expires_at,
-                ),
-            )
+            now = datetime.now(timezone.utc)
+            user_session = UserSessionEntity.start(user_id=user.id, now=now)
+            saved_session = await self.uow.sessions.add(user_session)
 
             await self.uow.commit()
 
             access_token = self.token_service.create_access_token(
                 user.id,
-                session.id,
+                saved_session.id,
             )
 
             return LoginResult(access_token=access_token)

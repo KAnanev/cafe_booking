@@ -15,7 +15,8 @@ class CafeCRUD(CRUDBase[Cafe, CafeCreate, CafeUpdate]):
     def _query_for_manager(self, *, manager_id: uuid.UUID) -> Select:
         """Строит запрос на выборку кафе, доступных конкретному менеджеру."""
         return (
-            self._select_base()
+            self
+            ._select_base()
             .join(CafeManagerLink, CafeManagerLink.cafe_id == self._model.id)
             .where(CafeManagerLink.user_id == manager_id)
             .where(CafeManagerLink.is_active.is_(True))
