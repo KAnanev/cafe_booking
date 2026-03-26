@@ -9,8 +9,8 @@ class BaseEntity:
 
     id: UUID = field(default_factory=uuid4)
     is_active: bool = True
-    created_at: datetime = field(default_factory=datetime.now(UTC))
-    updated_at: datetime = field(default_factory=datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def touch(self) -> None:
         """Обновляет атрибут времени последнего обновления объекта."""
