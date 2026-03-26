@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
+from common.domain.base import BaseEntity
+
 
 class UserRole(StrEnum):
     """Представляет роли пользователя в виде перечисления строк."""
@@ -11,7 +13,7 @@ class UserRole(StrEnum):
 
 
 @dataclass
-class User:
+class User(BaseEntity):
     """Класс представляет пользователя в системе."""
 
     username: str
