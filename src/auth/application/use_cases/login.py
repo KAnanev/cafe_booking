@@ -5,11 +5,11 @@ from auth.application.exceptions import (
     AuthenticationFailed,
     InactiveAccount,
 )
-from auth.application.interfaces import (
+from auth.application.ports.uow import AuthUnitOfWork
+from auth.application.security import (
     PasswordService,
     TokenService,
 )
-from auth.application.ports.uow import AuthUnitOfWork
 from auth.domain.entities import UserSession as UserSessionEntity
 
 

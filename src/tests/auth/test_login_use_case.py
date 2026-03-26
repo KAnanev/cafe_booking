@@ -1,6 +1,6 @@
 import pytest
 
-from auth.application.interfaces import PasswordService
+from auth.application.security import PasswordService
 from auth.providers.user_auth_reader import UserProvider
 from auth.use_cases.exceptions import InvalidCredentials, UserInactive
 from auth.use_cases.login import LoginUseCase
