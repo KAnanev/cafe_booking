@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from auth.domain.models import AuthUser
+from auth.domain.auth_user import AuthUser
 
 
 class UserRepository(Protocol):

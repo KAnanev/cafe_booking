@@ -10,7 +10,7 @@ from auth.application.security import (
     PasswordService,
     TokenService,
 )
-from auth.domain.entities import UserSession as UserSessionEntity
+from auth.domain.user_session import UserSession as UserSessionEntity
 
 
 class LoginUseCase:

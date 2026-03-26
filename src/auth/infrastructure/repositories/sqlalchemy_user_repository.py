@@ -2,7 +2,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.application.ports.user_reader import UserRepository
-from auth.domain.models import AuthUser
+from auth.domain.auth_user import AuthUser
 from models.user import User as ORMUser
 
 
