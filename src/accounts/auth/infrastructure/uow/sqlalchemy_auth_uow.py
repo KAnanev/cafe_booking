@@ -1,10 +1,10 @@
+from shared.infrastructure.repositories.sqlalchemy_user_repository import (
+    SqlAlchemyUserRepository,
+)
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from auth.infrastructure.repositories.sqlalchemy_session_repository import (
     SqlAlchemySessionRepository,
-)
-from auth.infrastructure.repositories.sqlalchemy_user_repository import (
-    SqlAlchemyUserRepository,
 )
 
 
