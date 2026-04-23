@@ -1,5 +1,4 @@
-from auth.domain.permissions.base import PermissionPolicy
-from auth.domain.permissions.context import UserContext, UserRole
+from accounts.auth import PermissionPolicy, UserContext, UserRole
 
 
 class IsAuthenticated(PermissionPolicy):

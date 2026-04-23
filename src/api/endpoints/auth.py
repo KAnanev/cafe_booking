@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, status
 
+from accounts.auth import LoginUseCase
 from api.dependencies.auth import get_login_use_case
 from api.dependencies.managers import get_session_manager
-from auth.use_cases.login import LoginUseCase
 from core.security import create_access_token
 from managers.session_manager import SessionManager
 from schemas.auth import AuthRequest, AuthResponse

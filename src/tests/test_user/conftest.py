@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from core.config import Settings
 from core.constants import SESSION_TTL_SECONDS
 from core.db import Base, get_async_session

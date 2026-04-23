@@ -1,7 +1,9 @@
 from typing import Any, Protocol
 
-from auth.application.ports.session_repository import SessionRepository
-from auth.application.ports.user_reader import UserRepository
+from accounts.auth.application.ports.session_repository import (
+    SessionRepository,
+)
+from accounts.auth.application.ports.user_reader import UserRepository
 
 
 class AuthUnitOfWork(Protocol):

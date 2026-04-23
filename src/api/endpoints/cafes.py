@@ -3,13 +3,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
-from api.dependencies.managers import (
-    get_cafe_manager,
-)
-from auth.domain.permissions.presets import (
+from accounts.auth import (
     require_admin,
     require_admin_or_manager,
     require_auth,
+)
+from api.dependencies.managers import (
+    get_cafe_manager,
 )
 from managers.cafe_manager import CafeManager
 from models.user import User

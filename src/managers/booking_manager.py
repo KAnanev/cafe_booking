@@ -3,7 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from core.constants import REMIND_MINUTES_BEFORE
 from crud.booking import booking_crud
 from crud.cafe import cafe_crud

@@ -1,7 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
-from auth.domain.user_session import UserSession
+from accounts.auth.domain.user_session import UserSession
 
 
 class SessionRepository(Protocol):

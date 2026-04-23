@@ -1,8 +1,8 @@
-from auth.application.use_cases.login import LoginUseCase
-from auth.infrastructure.db import AsyncSessionLocal
-from auth.infrastructure.password_service import SecurePasswordService
-from auth.infrastructure.token_service import SecureTokenService
-from auth.infrastructure.uow.sqlalchemy_auth_uow import (
+from accounts.auth.application.use_cases.login import LoginUseCase
+from accounts.auth.infrastructure.db import AsyncSessionLocal
+from accounts.auth.infrastructure.password_service import SecurePasswordService
+from accounts.auth.infrastructure.token_service import SecureTokenService
+from accounts.auth.infrastructure.uow.sqlalchemy_auth_uow import (
     SqlAlchemyAuthUnitOfWork,
 )
 

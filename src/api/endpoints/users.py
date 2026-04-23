@@ -2,13 +2,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
-from api.dependencies.authorization import require_permission
-from api.dependencies.managers import get_user_manager
-from auth.domain.permissions.presets import (
+from accounts.auth import (
     require_admin_or_manager,
     require_anonymous_or_admin_or_manager,
     require_auth,
 )
+from api.dependencies.authorization import require_permission
+from api.dependencies.managers import get_user_manager
 from managers.user_manager import UserManager
 from models.user import User
 from schemas.user import UserAdminUpdate, UserCreate, UserDB, UserMeUpdate

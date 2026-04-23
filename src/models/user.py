@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import Boolean, CheckConstraint, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from core.constants import (
     CHECK_USER_EMAIL_OR_PHONE,
     EMAIL_MAX_LENGTH,

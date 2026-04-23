@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from auth.domain.permissions.context import UserContext
+from accounts.auth import UserContext
 
 
 class PermissionPolicy(ABC):

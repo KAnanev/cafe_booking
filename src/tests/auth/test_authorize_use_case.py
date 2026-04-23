@@ -1,14 +1,15 @@
 import uuid
 
-from auth.domain.permissions.context import UserContext, UserRole
-from auth.domain.permissions.presets import (
+from accounts.auth import (
+    AuthorizationUseCase,
+    UserContext,
+    UserRole,
     optional_user,
     require_admin,
     require_admin_or_manager,
     require_anonymous_or_admin_or_manager,
     require_auth,
 )
-from auth.use_cases.authorize import AuthorizationUseCase
 
 
 class FakeUser(UserContext):

@@ -3,8 +3,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.application.ports.session_repository import SessionRepository
-from auth.domain.user_session import UserSession as UserSessionEntity
+from accounts.auth.application.ports.session_repository import (
+    SessionRepository,
+)
+from accounts.auth.domain.user_session import UserSession as UserSessionEntity
 from models.user_session import UserSession as ORMUserSession
 
 

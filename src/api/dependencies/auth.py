@@ -4,15 +4,13 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from accounts.auth import DBUserProvider, LoginUseCase, UserRole
+from accounts.auth.infrastructure.password_service import SecurePasswordService
 from api.dependencies.managers import (
     get_auth_manager,
     get_session_manager,
     get_user_manager,
 )
-from auth.domain.permissions.context import UserRole
-from auth.infrastructure.password_service import SecurePasswordService
-from auth.providers.user_auth_reader import DBUserProvider
-from auth.use_cases.login import LoginUseCase
 from core.db import get_async_session
 from core.exceptions import InvalidToken
 from core.security import decode_access_token

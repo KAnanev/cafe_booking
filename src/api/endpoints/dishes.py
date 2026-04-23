@@ -4,9 +4,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from accounts.auth import UserRole
 from api.dependencies.permissions import is_manager_or_admin
 from api.dependencies.users import get_current_active_user
-from auth.domain.permissions.context import UserRole
 from core.db import get_async_session
 from crud.dishes import dish_crud
 from models.dish import Dish

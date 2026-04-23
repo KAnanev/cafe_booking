@@ -1,16 +1,16 @@
 from datetime import datetime, timezone
 
-from auth.application.dto import LoginCommand, LoginResult
-from auth.application.exceptions import (
+from accounts.auth.application.dto import LoginCommand, LoginResult
+from accounts.auth.application.exceptions import (
     AuthenticationFailed,
     InactiveAccount,
 )
-from auth.application.ports.security import (
+from accounts.auth.application.ports.security import (
     PasswordService,
     TokenService,
 )
-from auth.application.ports.uow import AuthUnitOfWork
-from auth.domain.user_session import UserSession as UserSessionEntity
+from accounts.auth.application.ports.uow import AuthUnitOfWork
+from accounts.auth.domain.user_session import UserSession as UserSessionEntity
 
 
 class LoginUseCase:

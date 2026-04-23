@@ -4,7 +4,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from models.user import User
 
 from .fixtures.test_data import USERS_ROUTE

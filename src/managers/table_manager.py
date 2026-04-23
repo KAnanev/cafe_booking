@@ -4,7 +4,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from crud.table import table_crud
 from managers.cafe_access import CafePermissionService
 from managers.exceptions import CafeNotFound, TableNotFound

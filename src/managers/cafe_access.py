@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.domain.permissions.context import UserRole
+from accounts.auth import UserRole
 from crud.cafe_access import CafeAccessCRUD
 from managers.exceptions import PermissionDenied
 from models.user import User

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
 
-from auth.api.dependencies import get_login_use_case
-from auth.api.schemas import LoginRequest, LoginResponse
-from auth.application.dto import LoginCommand
-from auth.application.use_cases.login import LoginUseCase
+from accounts.auth.api.dependencies import get_login_use_case
+from accounts.auth.api.schemas import LoginRequest, LoginResponse
+from accounts.auth.application.dto import LoginCommand
+from accounts.auth.application.use_cases.login import LoginUseCase
 
 router = APIRouter()
 

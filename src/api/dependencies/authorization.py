@@ -2,10 +2,9 @@ from typing import Callable
 
 from fastapi import Depends
 
+from accounts.auth import PermissionPolicy, UserContext
+from accounts.auth.application import AuthorizationUseCase
 from api.dependencies.auth import get_optional_user
-from auth.application.use_cases.authorize import AuthorizationUseCase
-from auth.domain.permissions.base import PermissionPolicy
-from auth.domain.permissions.context import UserContext
 
 
 def require_permission(
