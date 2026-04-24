@@ -17,27 +17,6 @@ class SqlAlchemySessionRepository(SessionRepository):
         """Создает новый экземпляр класса."""
         self.session = session
 
-    async def add(self, entity: UserSessionEntity) -> UserSessionEntity:
-        """Добавляет объект сущности в хранилище."""
-        model = ORMUserSession(
-            user_id=entity.user_id,
-            last_activity=entity.last_activity,
-            expires_at=entity.expires_at,
-            is_active=entity.is_active,
-        )
-        self.session.add(model)
-        await self.session.flush()
-
-        return UserSessionEntity(
-            id=model.id,
-            user_id=model.user_id,
-            last_activity=model.last_activity,
-            expires_at=model.expires_at,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            is_active=model.is_active,
-        )
-
     async def get_by_id(
         self,
         user_session_id: UUID,
@@ -51,6 +30,27 @@ class SqlAlchemySessionRepository(SessionRepository):
 
         if model is None:
             return None
+
+        return UserSessionEntity(
+            id=model.id,
+            user_id=model.user_id,
+            last_activity=model.last_activity,
+            expires_at=model.expires_at,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            is_active=model.is_active,
+        )
+
+    async def add(self, entity: UserSessionEntity) -> UserSessionEntity:
+        """Добавляет объект сущности в хранилище."""
+        model = ORMUserSession(
+            user_id=entity.user_id,
+            last_activity=entity.last_activity,
+            expires_at=entity.expires_at,
+            is_active=entity.is_active,
+        )
+        self.session.add(model)
+        await self.session.flush()
 
         return UserSessionEntity(
             id=model.id,

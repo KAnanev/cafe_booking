@@ -3,12 +3,13 @@ from shared.infrastructure.repositories.sqlalchemy_user_repository import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from auth.application.ports.uow import AuthUnitOfWork
 from auth.infrastructure.repositories.sqlalchemy_session_repository import (
     SqlAlchemySessionRepository,
 )
 
 
-class SqlAlchemyAuthUnitOfWork:
+class SqlAlchemyAuthUnitOfWork(AuthUnitOfWork):
     """Работа предоставляет методы для управления аутентификацией с БД.
 
     Класс используется для взаимодействия с репозиториями пользователей и

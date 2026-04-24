@@ -4,11 +4,11 @@ from enum import StrEnum
 from common.domain.base import BaseEntity
 
 
-class UserRole(StrEnum):
+class SystemRole(StrEnum):
     """Представляет роли пользователя в виде перечисления строк."""
 
+    SUPER_ADMIN = 'super_admin'
     ADMIN = 'admin'
-    MANAGER = 'manager'
     USER = 'user'
 
 
@@ -21,8 +21,7 @@ class User(BaseEntity):
     email: str | None = None
     phone: str | None = None
     tg_id: str | None = None
-    role: UserRole = UserRole.USER
-    is_superuser: bool = False
+    role: SystemRole = SystemRole.USER
 
     def __post_init__(self) -> None:
         if not any([self.email, self.phone]):
@@ -34,5 +33,58 @@ class User(BaseEntity):
         if not self.hashed_password.strip():
             raise ValueError('Пароль не может быть пустым.')
 
-        if self.is_superuser and self.role != UserRole.ADMIN:
-            raise ValueError('Суперпользователь должен иметь роль admin.')
+    @classmethod
+    def create_super_admin(
+        cls,
+        username: str,
+        hashed_password: str,
+        email: str | None = None,
+        phone: str | None = None,
+        tg_id: str | None = None,
+    ) -> 'User':
+        """Создаёт суперпользователя."""
+        return cls(
+            username=username,
+            hashed_password=hashed_password,
+            email=email,
+            phone=phone,
+            tg_id=tg_id,
+            role=SystemRole.ADMIN,
+        )
+
+    @classmethod
+    def create_admin(
+        cls,
+        username: str,
+        hashed_password: str,
+        email: str | None = None,
+        phone: str | None = None,
+        tg_id: str | None = None,
+    ) -> 'User':
+        """Создаёт админа."""
+        return cls(
+            username=username,
+            hashed_password=hashed_password,
+            email=email,
+            phone=phone,
+            tg_id=tg_id,
+            role=SystemRole.SUPER_ADMIN,
+        )
+
+    @classmethod
+    def create_user(
+        cls,
+        username: str,
+        hashed_password: str,
+        email: str | None = None,
+        phone: str | None = None,
+        tg_id: str | None = None,
+    ) -> 'User':
+        """Создаёт пользователя."""
+        return cls(
+            username=username,
+            hashed_password=hashed_password,
+            email=email,
+            phone=phone,
+            tg_id=tg_id,
+        )
